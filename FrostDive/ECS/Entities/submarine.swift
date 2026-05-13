@@ -29,7 +29,7 @@ class submarineEntity: GKEntity {
     }
     required init?(coder aDecoder: NSCoder) { fatalError() }
 }
-<<<<<<< HEAD
+
 
 
 //var entities = [GKEntity]()
@@ -48,5 +48,3 @@ class submarineEntity: GKEntity {
 //override func didMove(to view: SKView) {
 //    spawnSubmarine()
 //}
-=======
->>>>>>> dev
