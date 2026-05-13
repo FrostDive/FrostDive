@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct PhysicsCategory1 {
+struct physicsCategory {
     static let none: UInt32 = 0
     static let submarine: UInt32 = 1 << 0
     static let trash: UInt32 = 1 << 1
