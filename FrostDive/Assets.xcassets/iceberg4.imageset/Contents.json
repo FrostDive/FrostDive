@@ -1,7 +1,11 @@
 {
   "images" : [
     {
+<<<<<<< HEAD
       "filename" : "iceberg4.pdf",
+=======
+      "filename" : "Image.png",
+>>>>>>> dev
       "idiom" : "universal",
       "scale" : "1x"
     },

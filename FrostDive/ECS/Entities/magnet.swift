@@ -8,6 +8,7 @@
 import SpriteKit
 import GameplayKit
 
+<<<<<<< HEAD
 class magnetEntity: GKEntity {
     init(imageName: String, size: CGSize, startPosition: CGPoint, speed: CGFloat) {
         super.init()
@@ -34,3 +35,5 @@ class magnetEntity: GKEntity {
     }
     required init?(coder aDecoder: NSCoder) { fatalError() }
 }
+=======
+>>>>>>> dev
