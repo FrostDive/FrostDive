@@ -75,7 +75,7 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
     override func update(_ currentTime: TimeInterval) {
         if lastUpdateTime == 0 { lastUpdateTime = currentTime }
         var dt = currentTime - lastUpdateTime
-        lastUpdateTime = currentTime // ✅ PENTING: Jangan lupa update waktunya
+        lastUpdateTime = currentTime 
         
         // Batasi dt agar tidak meloncat jauh kalau ada frame drop
         if dt > 0.05 { dt = 1.0 / 60.0 }
