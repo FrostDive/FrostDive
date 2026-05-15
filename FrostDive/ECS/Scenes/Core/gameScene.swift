@@ -171,7 +171,7 @@ extension gameScene {
         if isTrash {
             let randomTrashIndex = Int.random(in: 1...3)
             let trashImageName = "trash_\(randomTrashIndex)"
-            let trashSize = CGSize(width: 40, height: 40)
+            let trashSize = CGSize(width: 43, height: 69)
             
             let safeMargin: CGFloat = 100 + (trashSize.height / 2)
             let randomY = CGFloat.random(in: safeMargin...(size.height - safeMargin))

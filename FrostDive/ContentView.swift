@@ -11,13 +11,13 @@ import SpriteKit
 struct ContentView: View {
     var scene: SKScene {
         let scene = gameScene(size: UIScreen.main.bounds.size)
-        scene.scaleMode = .aspectFill // ✅ Pastikan scaleMode-nya aspectFill atau resizeFill
+        scene.scaleMode = .aspectFill
         return scene
     }
 
     var body: some View {
         SpriteView(scene: scene)
-            .ignoresSafeArea() // ✅ Ini kunci agar bar putih di kiri-kanan hilang!
+            .ignoresSafeArea()
     }
 }
 
