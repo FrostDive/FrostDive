@@ -60,8 +60,13 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
         setupEdge()
         setupBackground()
         spawnSubmarine()
-        
         startSpawning()
+        
+        let seconds = 15.0
+        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
+            self.startMagnetSpawning()
+        }
+
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -75,7 +80,7 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
     override func update(_ currentTime: TimeInterval) {
         if lastUpdateTime == 0 { lastUpdateTime = currentTime }
         var dt = currentTime - lastUpdateTime
-        lastUpdateTime = currentTime 
+        lastUpdateTime = currentTime
         
         // Batasi dt agar tidak meloncat jauh kalau ada frame drop
         if dt > 0.05 { dt = 1.0 / 60.0 }
@@ -157,8 +162,24 @@ extension gameScene {
         let sequence = SKAction.sequence([spawnAction, delaySpawn])
         
         run(SKAction.repeatForever(sequence), withKey: "entity_spawn")
+        
     }
-
+    
+    private func startMagnetSpawning() {
+        // logic spawn magnet
+        
+        let spawnMagnet = SKAction.run { [weak self] in
+            self?.spawnMagnetEntity()
+        }
+        
+        let randomMagnetDelay = TimeInterval.random(in: 20.0 ... 30.0)
+        let delayMagnet = SKAction.wait(forDuration: randomMagnetDelay)
+        let sequenceMagnet = SKAction.sequence([spawnMagnet, delayMagnet])
+        
+        
+        run(SKAction.repeatForever(sequenceMagnet), withKey: "magnet_spawn")
+    }
+    
     
     private func spawnRandomEntity() {
         let isTrash = Bool.random()
@@ -208,6 +229,34 @@ extension gameScene {
         
         entities.append(newEntity)
     }
+    
+    private func spawnMagnetEntity() {
+        
+        let speed: CGFloat = 2.5
+        let startX = size.width + 100
+        let newEntity: GKEntity
+        var startPos: CGPoint = .zero
+        
+        let magnetImageName = "magnet"
+        let magnetSize = CGSize(width: 70, height: 69)
+        
+        let safeMargin: CGFloat = 100 + (magnetSize.height / 2)
+        let randomY = CGFloat.random(in: safeMargin...(size.height - safeMargin))
+        startPos = CGPoint(x: startX, y: randomY)
+        
+        newEntity = trashEntity(imageName: magnetImageName, size: magnetSize, startPosition: startPos, speed: speed)
+        
+        
+        if let s = newEntity.component(ofType: spriteComponent.self) {
+            s.node.position = startPos
+            addChild(s.node)
+            
+            if let p = newEntity.component(ofType: positionComponent.self) { posSystem.addComponent(p) }
+            if let m = newEntity.component(ofType: movementComponent.self) { moveSystem.addComponent(m) }
+            
+            entities.append(newEntity)
+        }
+    }
 }
 
 // MARK: - Cleanup System
@@ -256,6 +305,16 @@ extension gameScene {
             trashNode?.name = "collected"
             trashNode?.removeFromParent()
             
+        }
+        
+        else if collision == physicsCategory.submarine | physicsCategory.power {
+            let powerNode = bodyA == physicsCategory.power ? contact.bodyA.node : contact.bodyB.node
+            
+            print("Power-up diambil!")
+            
+            guard powerNode?.name == "power" else { return }
+            powerNode?.name = "collected"
+            powerNode?.removeFromParent()
         }
         
         else if collision == physicsCategory.submarine | physicsCategory.obstacle {
