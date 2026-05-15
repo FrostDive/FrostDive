@@ -45,6 +45,7 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Properties
     var entities = [GKEntity]()
     var playerEntity: submarineEntity?
+    var gameState: gameState?
     
     // Systems
     lazy var posSystem = positionSystem(componentClass: positionComponent.self)
@@ -82,15 +83,14 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
         var dt = currentTime - lastUpdateTime
         lastUpdateTime = currentTime
         
-        // Batasi dt agar tidak meloncat jauh kalau ada frame drop
         if dt > 0.05 { dt = 1.0 / 60.0 }
         
-        // 1. Update status magnet dari GameState buatan temanmu
-        // moveSystem.isMagnetActive = gameState?.isMagnet ?? false
+        // 1. Update status magnet dari gameState
+        moveSystem.isMagnetActive = gameState?.isMagnetic ?? false
         
-        // 2. Kirim posisi kapal selam terkini ke sistem pergerakan
-        if let subPos = playerEntity?.component(ofType: positionComponent.self)?.position {
-            moveSystem.submarinePosition = subPos
+        // 2. Kirim posisi kapal selam mengambil dari spriteNode
+        if let subNode = playerEntity?.component(ofType: spriteComponent.self)?.node {
+            moveSystem.submarinePosition = subNode.position
         }
         
         // Jalankan sistem
@@ -252,7 +252,7 @@ extension gameScene {
         let randomY = CGFloat.random(in: safeMargin...(size.height - safeMargin))
         startPos = CGPoint(x: startX, y: randomY)
         
-        newEntity = trashEntity(imageName: magnetImageName, size: magnetSize, startPosition: startPos, speed: speed)
+        newEntity = magnetEntity(imageName: magnetImageName, size: magnetSize, startPosition: startPos, speed: speed)
         
         
         if let s = newEntity.component(ofType: spriteComponent.self) {
