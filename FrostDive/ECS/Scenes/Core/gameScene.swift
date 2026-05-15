@@ -5,13 +5,6 @@
 //  Created by Natalie Grace Widjaja Kuswanto on 13/05/26.
 //
 
-//
-//  gameScene.swift
-//  FrostDive
-//
-//  Created by Natalie Grace Widjaja Kuswanto on 13/05/26.
-//
-
 import SpriteKit
 import GameplayKit
 
@@ -320,15 +313,35 @@ extension gameScene {
             
             print("Power-up diambil!")
             
-            guard powerNode?.name == "power" else { return }
+            guard powerNode?.name == "magnet" else { return }
             powerNode?.name = "collected"
             powerNode?.removeFromParent()
+            
+            // 1. Ubah state menjadi true
+            self.gameState?.isMagnetic = true
+            
+            // 2. Buat aksi menunggu 10 detik
+            let waitAction = SKAction.wait(forDuration: 10.0)
+            
+            // 3. Buat aksi untuk mematikan magnet
+            let turnOffAction = SKAction.run { [weak self] in
+                self?.gameState?.isMagnetic = false
+                print("Efek magnet telah habis!")
+            }
+            
+            // 4. Rangkai aksinya
+            let magnetSequence = SKAction.sequence([waitAction, turnOffAction])
+            
+            // 5. Jalankan dengan Key.
+            // Jika pemain ambil magnet lagi di detik ke-9, timer lama akan otomatis ditimpa timer baru!
+            self.run(magnetSequence, withKey: "magnet_timer")
         }
         
         else if collision == physicsCategory.submarine | physicsCategory.obstacle {
             print("GAME OVER: Menabrak rintangan!")
             
             removeAction(forKey: "entity_spawn")
+            removeAction(forKey: "magnet_spawn")
             
             playerEntity?.component(ofType: spriteComponent.self)?.node.removeFromParent()
             
