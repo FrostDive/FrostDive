@@ -15,4 +15,10 @@ class gameState: ObservableObject {
     @Published var trash: Int = 0
     @Published var distance: CGFloat = 0
     @Published var isDarkScene: Bool = false
+    @Published var isMagnetic: Bool = false
+    @Published var currentScreen: AppScreen = .home
+}
+
+enum AppScreen {
+    case home, shop, game
 }
