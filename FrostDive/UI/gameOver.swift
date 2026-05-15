@@ -16,32 +16,32 @@ struct gameOver: View {
             Image("popUpGameOver")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 550)
+                .frame(width: 600)
                 .edgesIgnoringSafeArea(.all)
             
-            VStack(spacing: 15) {
-                Text("Game Over")
-                    .font(.custom("milner", size: 30, relativeTo: .title))
+            VStack {
+                Text("GAME OVER")
+                    .font(.custom("milner", size: 50, relativeTo: .title))
                     .foregroundStyle(Color(hex: "#005085"))
                 
                 Text("Distances")
-                    .font(.title)
+                    .font(.custom("milner", size: 30, relativeTo: .title))
                     .foregroundColor(Color(hex: "#75B5D1"))
                 Text("\(Int(gameState.distance))m")
-                    .font(.title)
+                    .font(.custom("milner", size: 40, relativeTo: .title))
                     .bold()
                     .foregroundColor(Color(hex: "#005085"))
                 
                 HStack{
                     Text("Total Trash: ")
-                        .font(.title)
+                        .font(.custom("milner", size: 30, relativeTo: .title))
                         .foregroundColor(Color(hex: "#75B5D1"))
                     Text("\(gameState.trash)")
-                        .font(.title)
+                        .font(.custom("milner", size: 30, relativeTo: .title))
                         .foregroundColor(Color(hex: "#005085"))
                 }
                 
-                HStack(spacing: 20) {
+                HStack(spacing: 12) {
                     Button(action: {
                         gameState.isGameOver = false
                         gameState.currentScreen = .home
@@ -49,7 +49,7 @@ struct gameOver: View {
                         Image("homeGameOver")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 120, height: 50)
+                            .frame(width: 180)
                     }
                     
                     Button(action: {
@@ -60,9 +60,10 @@ struct gameOver: View {
                         Image("retryGameOver")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 120, height: 50)
+                            .frame(width: 180)
                     }
                 }
+                .padding(.bottom, 10)
             }
         }
     }
