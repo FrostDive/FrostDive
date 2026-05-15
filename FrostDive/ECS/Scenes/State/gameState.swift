@@ -5,12 +5,14 @@
 //  Created by Ibnu Taufick Ahraza on 13/05/26.
 //
 
-import Foundation
+import SwiftUI
+import Combine
 
-enum gameState {
-    case home
-    case shop
-    case playing
-    case paused
-    case gameOver
+class gameState: ObservableObject {
+    @Published var isPaused: Bool = false
+    @Published var isGameOver: Bool = false
+    
+    @Published var trash: Int = 0
+    @Published var distance: CGFloat = 0
+    @Published var isDarkScene: Bool = false
 }
