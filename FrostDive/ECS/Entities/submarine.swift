@@ -30,4 +30,5 @@ class submarineEntity: GKEntity {
             spriteNode.physicsBody?.collisionBitMask = physicsCategory.edge
         }
     }
+    required init?(coder: NSCoder) { fatalError() }
 }
