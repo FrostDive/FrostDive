@@ -258,10 +258,7 @@ class shopScene: SKScene {
         cardBG.zPosition = 0
         root.addChild(cardBG)
 
-        // preload texture dulu sebelum baca size()-nya
-        // supaya aspect ratio tidak berubah dan gambar tidak gepeng
         let thumbTex  = SKTexture(imageNamed: "submarine\(sub.index)")
-        SKTexture.preload([thumbTex]) { }
         let natSz     = thumbTex.size()
         let maxThumbW = cardSize.width  * 0.74
         let maxThumbH = cardSize.height * 0.50
@@ -326,9 +323,7 @@ class shopScene: SKScene {
         bg.zPosition = 0
         popup.addChild(bg)
 
-        // preload texture submarine supaya size() akurat dan gambar tidak gepeng
         let imgTex   = SKTexture(imageNamed: "submarine\(sub.index)")
-        SKTexture.preload([imgTex]) { }
         let imgNatSz = imgTex.size()
         let popMaxW: CGFloat = 150
         let popMaxH: CGFloat = 88
@@ -386,9 +381,7 @@ class shopScene: SKScene {
         bg.zPosition = 0
         popup.addChild(bg)
 
-        // preload texture submarine supaya size() akurat dan gambar tidak gepeng
         let imgTex   = SKTexture(imageNamed: "submarine\(sub.index)")
-        SKTexture.preload([imgTex]) { }
         let imgNatSz = imgTex.size()
         let popMaxW: CGFloat = 150
         let popMaxH: CGFloat = 88
@@ -528,7 +521,7 @@ class shopScene: SKScene {
     // MARK: - navigation
 
     private func goHome() {
-        let scene = HomeScene(size: size)
+        let scene = homeScene(size: size)
         scene.scaleMode = .aspectFill
         view?.presentScene(scene, transition: SKTransition.fade(withDuration: 0.4))
     }
