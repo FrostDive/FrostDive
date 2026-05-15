@@ -6,16 +6,18 @@
 //
 
 import SwiftUI
+import SpriteKit
 
 struct ContentView: View {
+    var scene: SKScene {
+        let scene = gameScene(size: UIScreen.main.bounds.size)
+        scene.scaleMode = .aspectFill // ✅ Pastikan scaleMode-nya aspectFill atau resizeFill
+        return scene
+    }
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
+        SpriteView(scene: scene)
+            .ignoresSafeArea() // ✅ Ini kunci agar bar putih di kiri-kanan hilang!
     }
 }
 
