@@ -38,6 +38,7 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Properties
     var entities = [GKEntity]()
     var playerEntity: submarineEntity?
+    var gameState: gameState?
 
     // Systems
     lazy var posSystem = positionSystem(componentClass: positionComponent.self)
@@ -59,6 +60,12 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
         soundComponent.shared.playBGM(scene: self)
 
         startSpawning()
+
+        let seconds = 15.0
+        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
+            self.startMagnetSpawning()
+        }
+
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -78,6 +85,16 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
 
         // Batasi dt agar tidak meloncat jauh kalau ada frame drop
         if dt > 0.05 { dt = 1.0 / 60.0 }
+
+        // 1. Update status magnet dari gameState
+        moveSystem.isMagnetActive = gameState?.isMagnetic ?? false
+
+        // 2. Kirim posisi kapal selam mengambil dari spriteNode
+        if let subNode = playerEntity?.component(ofType: spriteComponent.self)?
+            .node
+        {
+            moveSystem.submarinePosition = subNode.position
+        }
 
         // Jalankan sistem
         thrustSys.update(deltaTime: dt)
@@ -177,6 +194,21 @@ extension gameScene {
         let sequence = SKAction.sequence([spawnAction, delaySpawn])
 
         run(SKAction.repeatForever(sequence), withKey: "entity_spawn")
+
+    }
+
+    private func startMagnetSpawning() {
+        // logic spawn magnet
+
+        let spawnMagnet = SKAction.run { [weak self] in
+            self?.spawnMagnetEntity()
+        }
+
+        let randomMagnetDelay = TimeInterval.random(in: 20.0...30.0)
+        let delayMagnet = SKAction.wait(forDuration: randomMagnetDelay)
+        let sequenceMagnet = SKAction.sequence([spawnMagnet, delayMagnet])
+
+        run(SKAction.repeatForever(sequenceMagnet), withKey: "magnet_spawn")
     }
 
     private func spawnRandomEntity() {
@@ -248,6 +280,44 @@ extension gameScene {
 
         entities.append(newEntity)
     }
+
+    private func spawnMagnetEntity() {
+
+        let speed: CGFloat = 2.5
+        let startX = size.width + 100
+        let newEntity: GKEntity
+        var startPos: CGPoint = .zero
+
+        let magnetImageName = "magnet"
+        let magnetSize = CGSize(width: 70, height: 69)
+
+        let safeMargin: CGFloat = 100 + (magnetSize.height / 2)
+        let randomY = CGFloat.random(
+            in: safeMargin...(size.height - safeMargin)
+        )
+        startPos = CGPoint(x: startX, y: randomY)
+
+        newEntity = magnetEntity(
+            imageName: magnetImageName,
+            size: magnetSize,
+            startPosition: startPos,
+            speed: speed
+        )
+
+        if let s = newEntity.component(ofType: spriteComponent.self) {
+            s.node.position = startPos
+            addChild(s.node)
+
+            if let p = newEntity.component(ofType: positionComponent.self) {
+                posSystem.addComponent(p)
+            }
+            if let m = newEntity.component(ofType: movementComponent.self) {
+                moveSystem.addComponent(m)
+            }
+
+            entities.append(newEntity)
+        }
+    }
 }
 
 // MARK: - Cleanup System
@@ -314,6 +384,39 @@ extension gameScene {
 
             soundComponent.shared.stopBGM()
 
+        } else if collision == physicsCategory.submarine | physicsCategory.power
+        {
+            let powerNode =
+                bodyA == physicsCategory.power
+                ? contact.bodyA.node : contact.bodyB.node
+
+            print("Power-up diambil!")
+
+            guard powerNode?.name == "magnet" else { return }
+            powerNode?.name = "collected"
+            powerNode?.removeFromParent()
+
+            // 1. Ubah state menjadi true
+            self.gameState?.isMagnetic = true
+
+            // 2. Buat aksi menunggu 10 detik
+            let waitAction = SKAction.wait(forDuration: 10.0)
+
+            // 3. Buat aksi untuk mematikan magnet
+            let turnOffAction = SKAction.run { [weak self] in
+                self?.gameState?.isMagnetic = false
+                print("Efek magnet telah habis!")
+            }
+
+            // 4. Rangkai aksinya
+            let magnetSequence = SKAction.sequence([waitAction, turnOffAction])
+
+            // 5. Jalankan dengan Key.
+            // Jika pemain ambil magnet lagi di detik ke-9, timer lama akan otomatis ditimpa timer baru!
+            self.run(magnetSequence, withKey: "magnet_timer")
+        } else if collision == physicsCategory.submarine
+            | physicsCategory.obstacle
+        {
             print("GAME OVER: Menabrak rintangan!")
 
             removeAction(forKey: "entity_spawn")
@@ -322,6 +425,11 @@ extension gameScene {
                 self.playerEntity?.component(ofType: spriteComponent.self)?.node
                     .removeFromParent()
             }
+            removeAction(forKey: "magnet_spawn")
+
+            playerEntity?.component(ofType: spriteComponent.self)?.node
+                .removeFromParent()
+
         }
     }
 }

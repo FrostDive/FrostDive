@@ -11,7 +11,11 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+<<<<<<< HEAD
 		2BADA6FC2FB71059001B19F0 /* Exceptions for "FrostDive" folder in "FrostDive" target */ = {
+=======
+		1F61ACA52FB712A50045D8DB /* Exceptions for "FrostDive" folder in "FrostDive" target */ = {
+>>>>>>> dev
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -24,7 +28,11 @@
 		F083B59E2FB3844D008C99F2 /* FrostDive */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+<<<<<<< HEAD
 				2BADA6FC2FB71059001B19F0 /* Exceptions for "FrostDive" folder in "FrostDive" target */,
+=======
+				1F61ACA52FB712A50045D8DB /* Exceptions for "FrostDive" folder in "FrostDive" target */,
+>>>>>>> dev
 			);
 			path = FrostDive;
 			sourceTree = "<group>";
