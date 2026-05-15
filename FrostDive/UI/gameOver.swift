@@ -13,6 +13,7 @@ struct gameOver: View {
     
     var body: some View {
         ZStack {
+            Color.black.opacity(0.4).edgesIgnoringSafeArea(.all)
             Image("popUpGameOver")
                 .resizable()
                 .scaledToFit()
