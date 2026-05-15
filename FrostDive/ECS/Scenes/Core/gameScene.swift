@@ -66,7 +66,7 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
             self.startMagnetSpawning()
         }
-
+        
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -84,6 +84,14 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
         
         // Batasi dt agar tidak meloncat jauh kalau ada frame drop
         if dt > 0.05 { dt = 1.0 / 60.0 }
+        
+        // 1. Update status magnet dari GameState buatan temanmu
+        // moveSystem.isMagnetActive = gameState?.isMagnet ?? false
+        
+        // 2. Kirim posisi kapal selam terkini ke sistem pergerakan
+        if let subPos = playerEntity?.component(ofType: positionComponent.self)?.position {
+            moveSystem.submarinePosition = subPos
+        }
         
         // Jalankan sistem
         thrustSys.update(deltaTime: dt)

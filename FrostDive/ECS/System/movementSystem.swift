@@ -12,7 +12,7 @@ class MovementSystem: GKComponentSystem<movementComponent> {
     var sceneSize: CGSize
     let totalBackgrounds: CGFloat = 15 // Sesuai aset background
     
-    var isMagnetActive: Bool = false
+    var isMagnetActive: Bool = true
     var submarinePosition: CGPoint?
     
     init(sceneSize: CGSize) {
