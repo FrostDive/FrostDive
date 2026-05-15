@@ -14,4 +14,5 @@ struct physicsCategory {
     static let obstacle: UInt32 = 1 << 2
     static let edge: UInt32 = 1 << 3
     static let power: UInt32 = 1 << 4
+    static let background: UInt32 = 1 << 5
 }
