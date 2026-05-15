@@ -5,13 +5,6 @@
 //  Created by Natalie Grace Widjaja Kuswanto on 13/05/26.
 //
 
-//
-//  gameScene.swift
-//  FrostDive
-//
-//  Created by Natalie Grace Widjaja Kuswanto on 13/05/26.
-//
-
 import SpriteKit
 import GameplayKit
 
@@ -259,12 +252,15 @@ extension gameScene {
         }
         
         else if collision == physicsCategory.submarine | physicsCategory.obstacle {
+            soundComponent.shared.obstacleHaptic()
+
             print("GAME OVER: Menabrak rintangan!")
             
             removeAction(forKey: "entity_spawn")
             
-            playerEntity?.component(ofType: spriteComponent.self)?.node.removeFromParent()
-            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                self.playerEntity?.component(ofType: spriteComponent.self)?.node.removeFromParent()
+            }
         }
     }
 }
