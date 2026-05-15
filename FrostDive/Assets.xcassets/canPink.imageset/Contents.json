@@ -1,11 +1,7 @@
 {
   "images" : [
     {
-<<<<<<< HEAD
-      "filename" : "canPink.pdf",
-=======
       "filename" : "Image.png",
->>>>>>> dev
       "idiom" : "universal",
       "scale" : "1x"
     },
