@@ -65,12 +65,10 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        // ✅ Ubah state isThrusting menjadi true
         playerEntity?.component(ofType: thrustComponent.self)?.isThrusting = true
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        // ✅ Ubah state isThrusting menjadi false
         playerEntity?.component(ofType: thrustComponent.self)?.isThrusting = false
     }
     
@@ -154,11 +152,13 @@ extension gameScene {
         let spawnAction = SKAction.run { [weak self] in
             self?.spawnRandomEntity()
         }
-        let delaySpawn = SKAction.wait(forDuration: 2.0)
+        let randomDelay = TimeInterval.random(in: 2.0...3.5)
+        let delaySpawn = SKAction.wait(forDuration: randomDelay)
         let sequence = SKAction.sequence([spawnAction, delaySpawn])
         
         run(SKAction.repeatForever(sequence), withKey: "entity_spawn")
     }
+
     
     private func spawnRandomEntity() {
         let isTrash = Bool.random()
@@ -234,6 +234,37 @@ extension gameScene {
             
             // 4. Return true agar Swift otomatis membuangnya dari array 'entities'
             return true
+        }
+    }
+}
+
+// MARK: - Collision / Contact Logic
+extension gameScene {
+    
+    func didBegin(_ contact: SKPhysicsContact) {
+        
+        let bodyA = contact.bodyA.categoryBitMask
+        let bodyB = contact.bodyB.categoryBitMask
+        let collision = bodyA | bodyB
+        
+        if collision == physicsCategory.submarine | physicsCategory.trash {
+            let trashNode = bodyA == physicsCategory.trash ? contact.bodyA.node : contact.bodyB.node
+            
+            print("Sampah dikumpulkan!")
+            
+            guard trashNode?.name == "trash" else { return }
+            trashNode?.name = "collected"
+            trashNode?.removeFromParent()
+            
+        }
+        
+        else if collision == physicsCategory.submarine | physicsCategory.obstacle {
+            print("GAME OVER: Menabrak rintangan!")
+            
+            removeAction(forKey: "entity_spawn")
+            
+            playerEntity?.component(ofType: spriteComponent.self)?.node.removeFromParent()
+            
         }
     }
 }
