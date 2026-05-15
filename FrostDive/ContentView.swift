@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  FrostDive
-//
-//  Created by Ibnu Taufick Ahraza on 12/05/26.
-//
-
 import SwiftUI
 import SpriteKit
 
@@ -19,8 +12,16 @@ struct ContentView: View {
     }
 
     var body: some View {
-        SpriteView(scene: scene)
-            .ignoresSafeArea()
+        GeometryReader { geometry in
+            SpriteView(scene: makeScene(size: geometry.size))
+                .ignoresSafeArea()
+        }
+    }
+
+    private func makeScene(size: CGSize) -> SKScene {
+        let scene = homeScene(size: size)
+        scene.scaleMode = .resizeFill
+        return scene
     }
 }
 
