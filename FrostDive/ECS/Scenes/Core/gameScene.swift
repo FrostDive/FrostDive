@@ -22,10 +22,10 @@ enum ObstacleType: CaseIterable {
     var imageName: String {
         switch self {
         case .bomb: return "bom"
-        case .iceberg1: return "iceberg_1"
-        case .iceberg2: return "iceberg_2"
-        case .iceberg3: return "iceberg_3"
-        case .iceberg4: return "iceberg_4"
+        case .iceberg1: return "iceberg1"
+        case .iceberg2: return "iceberg2"
+        case .iceberg3: return "iceberg3"
+        case .iceberg4: return "iceberg4"
         }
     }
     
