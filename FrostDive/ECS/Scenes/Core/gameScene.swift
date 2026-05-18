@@ -428,7 +428,7 @@ extension gameScene {
             // 2. Cek apakah posisinya sudah jauh di luar layar kiri
             guard
                 let posComp = entity.component(ofType: positionComponent.self),
-                posComp.position.x < -500
+                posComp.position.x < -250
             else { return false }
 
             // 3. Jika iya, eksekusi pembersihannya
