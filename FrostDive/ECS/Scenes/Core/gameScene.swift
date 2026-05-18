@@ -82,6 +82,9 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
 
     private func setupHUD() {
         hud = HUDView(sceneSize: size, mode: .game)
+        
+        hud.zPosition = 100
+        
         addChild(hud)
         hud.distance = 0
         hud.trashCount = 0
@@ -265,6 +268,10 @@ extension gameScene {
         if let t = submarine.component(ofType: thrustComponent.self) {
             thrustSys.addComponent(t)
         }
+        
+        let flashlight = flashlightComponent()
+        submarine.addComponent(flashlight)
+        flashlight.startLightingCycle()
 
         if let s = submarine.component(ofType: spriteComponent.self) {
             s.node.position = startPos
