@@ -467,27 +467,12 @@ extension gameScene {
             guard trashNode?.name == "trash" else { return }
             trashNode?.name = "collected"
             trashNode?.removeFromParent()
-
-        } else if collision == physicsCategory.submarine
-            | physicsCategory.obstacle
-        {
-            soundComponent.shared.obstacleHaptic()
-
-            soundComponent.shared.playExplosionSound(scene: self)
-
-            soundComponent.shared.stopBGM()
-
-        } else if collision == physicsCategory.submarine | physicsCategory.power
-        {
-            let powerNode =
-                bodyA == physicsCategory.power
-                ? contact.bodyA.node : contact.bodyB.node
-
+            
             sessionTrash += 1
             hud?.incrementTrash()
             gameStateRef?.trash = sessionTrash
+
         }
-        
         else if collision == physicsCategory.submarine | physicsCategory.power {
             let powerNode = bodyA == physicsCategory.power ? contact.bodyA.node : contact.bodyB.node
             
@@ -515,9 +500,16 @@ extension gameScene {
             // 5. Jalankan dengan Key.
             // Jika pemain ambil magnet lagi di detik ke-9, timer lama akan otomatis ditimpa timer baru!
             self.run(magnetSequence, withKey: "magnet_timer")
+            
         } else if collision == physicsCategory.submarine
             | physicsCategory.obstacle
         {
+            soundComponent.shared.obstacleHaptic()
+
+            soundComponent.shared.playExplosionSound(scene: self)
+
+            soundComponent.shared.stopBGM()
+            
             print("GAME OVER: Menabrak rintangan!")
 
             removeAction(forKey: "entity_spawn")
