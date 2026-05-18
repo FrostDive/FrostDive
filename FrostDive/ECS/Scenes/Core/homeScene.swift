@@ -19,14 +19,17 @@ class homeScene: SKScene {
     private var shopButton: SKSpriteNode!
     private var isTransitioningScene = false
     
-    private var hudContainer: SKNode!
-    private var distanceIcon: SKSpriteNode!
-    private var trashIcon: SKSpriteNode!
-    private var highScoreLabel: SKLabelNode!
-    private var totalTrashLabel: SKLabelNode!
+    private var hudView: HUDView!
+
+    var gameStateRef: gameState?
     
     // MARK: - lifecycle
     override func didMove(to view: SKView) {
+        gameStateRef?.currentScreen = .home
+        gameStateRef?.shouldReturnHome = false
+        gameStateRef?.isPaused = false
+        gameStateRef?.isGameOver = false
+
         setupScene()
         setupBackground()
         setupWhales()
@@ -78,81 +81,33 @@ class homeScene: SKScene {
     }
     
     private func setupHUD() {
-        hudContainer = SKNode()
-        hudContainer.zPosition = 10
-        addChild(hudContainer)
-
-        let topY = size.height - 32
-        let labelFontSize: CGFloat = 16
+        let topY = size.height - 22
         let iconLabelGap: CGFloat = 6
         let leftMargin: CGFloat = 60
-        let rightMargin: CGFloat = 110
-        let groupGap: CGFloat = 72
 
         let shopIconSize = CGSize(width: 22, height: 22)
-        let distanceIconSize = CGSize(width: 28, height: 23)
-        let trashIconSize = CGSize(width: 27.23, height: 23.61)
 
         shopButton = SKSpriteNode(imageNamed: "shopIcon")
         shopButton.size = shopIconSize
         shopButton.position = CGPoint(x: leftMargin, y: topY)
         shopButton.zPosition = 10
         shopButton.name = "shopButton"
-        hudContainer.addChild(shopButton)
+        addChild(shopButton)
 
         let shopLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
         shopLabel.text = "Shop"
-        shopLabel.fontSize = labelFontSize
+        shopLabel.fontSize = 16
         shopLabel.fontColor = .white
         shopLabel.horizontalAlignmentMode = .left
         shopLabel.verticalAlignmentMode = .center
         shopLabel.position = CGPoint(x: leftMargin + shopIconSize.width / 2 + iconLabelGap, y: topY)
         shopLabel.zPosition = 10
         shopLabel.name = "shopButton"
-        hudContainer.addChild(shopLabel)
+        addChild(shopLabel)
 
-        let totalTrash = UserDefaults.standard.integer(forKey: "totalTrash")
-        totalTrashLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
-        totalTrashLabel.text = "\(totalTrash)"
-        totalTrashLabel.fontSize = labelFontSize
-        totalTrashLabel.fontColor = .white
-        totalTrashLabel.horizontalAlignmentMode = .right
-        totalTrashLabel.verticalAlignmentMode = .center
-        totalTrashLabel.position = CGPoint(x: size.width - rightMargin, y: topY)
-        totalTrashLabel.zPosition = 10
-        hudContainer.addChild(totalTrashLabel)
-
-        let trashLabelWidth = totalTrashLabel.frame.width
-        trashIcon = SKSpriteNode(imageNamed: "trashIcon")
-        trashIcon.size = trashIconSize
-        trashIcon.position = CGPoint(
-            x: size.width - rightMargin - trashLabelWidth - iconLabelGap - trashIconSize.width / 2,
-            y: topY
-        )
-        trashIcon.zPosition = 10
-        hudContainer.addChild(trashIcon)
-
-        let highScore = UserDefaults.standard.integer(forKey: "highScore")
-        highScoreLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
-        highScoreLabel.text = "\(highScore)m"
-        highScoreLabel.fontSize = labelFontSize
-        highScoreLabel.fontColor = .white
-        highScoreLabel.horizontalAlignmentMode = .right
-        highScoreLabel.verticalAlignmentMode = .center
-        let distanceLabelRightX = trashIcon.position.x - trashIconSize.width / 2 - groupGap
-        highScoreLabel.position = CGPoint(x: distanceLabelRightX, y: topY)
-        highScoreLabel.zPosition = 10
-        hudContainer.addChild(highScoreLabel)
-
-        let distanceLabelWidth = highScoreLabel.frame.width
-        distanceIcon = SKSpriteNode(imageNamed: "distanceIcon")
-        distanceIcon.size = distanceIconSize
-        distanceIcon.position = CGPoint(
-            x: distanceLabelRightX - distanceLabelWidth - iconLabelGap - distanceIconSize.width / 2,
-            y: topY
-        )
-        distanceIcon.zPosition = 10
-        hudContainer.addChild(distanceIcon)
+        hudView = HUDView(sceneSize: size, mode: .homeShop)
+        addChild(hudView)
+        refreshHUD()
     }
     
     private func setupTitle() {
@@ -207,23 +162,33 @@ class homeScene: SKScene {
         let location = touch.location(in: self)
         let touchedNames = Set(self.nodes(at: location).compactMap { $0.name })
 
-        if touchedNames.contains("startButton") {
+        if touchedNames.contains("startButton") ||
+            isTouch(location, inside: startButton, padding: 44) ||
+            isTouchInStartArea(location) {
             handleStartButton()
-        } else if touchedNames.contains("shopButton") {
+        } else if touchedNames.contains("shopButton") || isTouch(location, inside: shopButton, padding: 24) {
             handleShopButton()
         }
+    }
+
+    private func isTouch(_ location: CGPoint, inside node: SKNode, padding: CGFloat) -> Bool {
+        node.calculateAccumulatedFrame().insetBy(dx: -padding, dy: -padding).contains(location)
+    }
+
+    private func isTouchInStartArea(_ location: CGPoint) -> Bool {
+        let startArea = CGRect(
+            x: size.width * 0.25,
+            y: 0,
+            width: size.width * 0.5,
+            height: size.height * 0.32
+        )
+        return startArea.contains(location)
     }
     
     private func handleStartButton() {
         guard !isTransitioningScene else { return }
         isTransitioningScene = true
-
-        let scaleDown = SKAction.scale(to: 0.9, duration: 0.1)
-        let scaleUp = SKAction.scale(to: 1.0, duration: 0.1)
-        let transition = SKAction.run { [weak self] in
-            self?.transitionToGame()
-        }
-        startButton.run(SKAction.sequence([scaleDown, scaleUp, transition]))
+        transitionToGame()
     }
     
     private func handleShopButton() {
@@ -239,15 +204,23 @@ class homeScene: SKScene {
     }
     
     private func transitionToGame() {
-        let scene = gameScene(size: self.size)
+        guard let skView = view else {
+            isTransitioningScene = false
+            return
+        }
+
+        let scene = gameScene(size: SceneSizeProvider.current(for: skView))
         scene.scaleMode = .aspectFill
-        let transition = SKTransition.fade(withDuration: 0.5)
-        self.view?.presentScene(scene, transition: transition)
+        scene.gameStateRef = gameStateRef
+        skView.presentScene(scene)
     }
     
     private func transitionToShop() {
-        let scene = shopScene(size: self.size)
+        gameStateRef?.currentScreen = .shop
+
+        let scene = shopScene(size: SceneSizeProvider.current(for: view))
         scene.scaleMode = .aspectFill
+        scene.gameStateRef = gameStateRef
         let transition = SKTransition.fade(withDuration: 0.4)
         self.view?.presentScene(scene, transition: transition)
     }
@@ -256,7 +229,7 @@ class homeScene: SKScene {
     func refreshHUD() {
         let highScore = UserDefaults.standard.integer(forKey: "highScore")
         let totalTrash = UserDefaults.standard.integer(forKey: "totalTrash")
-        highScoreLabel.text = "\(highScore)m"
-        totalTrashLabel.text = "\(totalTrash)"
+        hudView.distance = highScore
+        hudView.trashCount = totalTrash
     }
 }

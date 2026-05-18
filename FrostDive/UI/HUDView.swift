@@ -86,7 +86,7 @@ class HUDView: SKNode {
         // Pause button (top left) — sedikit dipinggirkan biar tidak kepotong safe area
         let pause = SKSpriteNode(imageNamed: "pauseIcon")
         pause.size = CGSize(width: 32, height: 32)
-        pause.position = CGPoint(x: 60, y: sceneSize.height - 22)
+        pause.position = CGPoint(x: 50, y: sceneSize.height - 30)
         pause.name = "pauseButton"
         pause.zPosition = 100
         addChild(pause)

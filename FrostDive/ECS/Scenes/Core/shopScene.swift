@@ -44,15 +44,20 @@ class shopScene: SKScene {
 
     // MARK: - node references
 
-    private var previewNode:     SKSpriteNode!
-    private var trashCountLabel: SKLabelNode!
-    private var distanceLabel:   SKLabelNode!
-    private var popupNode:       SKNode?
-    private var cardNodes:       [Int: SKNode] = [:]
+    private var previewNode: SKSpriteNode!
+    private var hudView: HUDView!
+    private var popupNode: SKNode?
+    private var cardNodes: [Int: SKNode] = [:]
+
+    var gameStateRef: gameState?
 
     // MARK: - lifecycle
 
     override func didMove(to view: SKView) {
+        DispatchQueue.main.async { [weak self] in
+            self?.gameStateRef?.currentScreen = .shop
+        }
+
         loadPersistentData()
         buildScene()
     }
@@ -127,47 +132,10 @@ class shopScene: SKScene {
         backLbl.name                    = "backButton"
         backGroup.addChild(backLbl)
 
-        // distance hud
-        let distGroup = SKNode()
-        distGroup.zPosition = 20
-        distGroup.position  = CGPoint(x: size.width * 0.645, y: barY)
-        addChild(distGroup)
-
-        let distIcon = SKSpriteNode(imageNamed: "distanceIcon")
-        distIcon.size     = CGSize(width: 26, height: 26)
-        distIcon.position = .zero
-        distGroup.addChild(distIcon)
-
-        let distLbl = SKLabelNode(fontNamed: "AvenirNext-Heavy")
-        distLbl.text                    = "\(highScore)m"
-        distLbl.fontSize                = 18
-        distLbl.fontColor               = .white
-        distLbl.horizontalAlignmentMode = .left
-        distLbl.verticalAlignmentMode   = .center
-        distLbl.position                = CGPoint(x: 18, y: 0)
-        distGroup.addChild(distLbl)
-        distanceLabel = distLbl
-
-        // trash hud
-        let trashGroup = SKNode()
-        trashGroup.zPosition = 20
-        trashGroup.position  = CGPoint(x: size.width * 0.82, y: barY)
-        addChild(trashGroup)
-
-        let trashIcon = SKSpriteNode(imageNamed: "trashIcon")
-        trashIcon.size     = CGSize(width: 26, height: 26)
-        trashIcon.position = .zero
-        trashGroup.addChild(trashIcon)
-
-        let trashLbl = SKLabelNode(fontNamed: "AvenirNext-Heavy")
-        trashLbl.text                    = "\(totalTrash)"
-        trashLbl.fontSize                = 18
-        trashLbl.fontColor               = .white
-        trashLbl.horizontalAlignmentMode = .left
-        trashLbl.verticalAlignmentMode   = .center
-        trashLbl.position                = CGPoint(x: 18, y: 0)
-        trashGroup.addChild(trashLbl)
-        trashCountLabel = trashLbl
+        hudView = HUDView(sceneSize: size, mode: .homeShop)
+        addChild(hudView)
+        hudView.distance = highScore
+        hudView.trashCount = totalTrash
     }
 
     // MARK: preview panel (kiri)
@@ -441,7 +409,7 @@ class shopScene: SKScene {
         equippedSub = subIndex
         savePersistentData()
 
-        trashCountLabel.text = "\(totalTrash)"
+        hudView.trashCount = totalTrash
         rebuildGrid()
         refreshPreview()
         dismissPopup()
@@ -521,8 +489,12 @@ class shopScene: SKScene {
     // MARK: - navigation
 
     private func goHome() {
-        let scene = homeScene(size: size)
+        gameStateRef?.currentScreen = .home
+        gameStateRef?.shouldReturnHome = false
+
+        let scene = homeScene(size: SceneSizeProvider.current(for: view))
         scene.scaleMode = .aspectFill
+        scene.gameStateRef = gameStateRef
         view?.presentScene(scene, transition: SKTransition.fade(withDuration: 0.4))
     }
 

@@ -92,6 +92,7 @@ struct SceneHostView: UIViewRepresentable {
         let skView = SceneHostSKView()
         skView.gameStateRef = gameState
         skView.ignoresSiblingOrder = true
+        skView.isUserInteractionEnabled = true
         skView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
 
         return skView
