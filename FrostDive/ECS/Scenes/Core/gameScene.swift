@@ -38,24 +38,37 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Properties
     var entities = [GKEntity]()
     var playerEntity: submarineEntity?
-    var gameState: gameState?
+    var gameStateRef: gameState?
     
     // Systems
     lazy var posSystem = positionSystem(componentClass: positionComponent.self)
     lazy var moveSystem = MovementSystem(sceneSize: self.size)
     lazy var thrustSys = thrustSystem()
 
+    private var hud: HUDView!
+    private var sessionDistance: Double = 0
+    private var sessionTrash: Int = 0
+    private var hasSavedSession = false
+    private var wasGameOver = false
+    
     // Time tracking untuk mencegah glitch pergerakan
     var lastUpdateTime: TimeInterval = 0
 
     // MARK: - Lifecycle
     override func didMove(to view: SKView) {
+        gameStateRef?.currentScreen = .game
+        gameStateRef?.shouldReturnHome = false
+        gameStateRef?.isPaused = false
+        gameStateRef?.isGameOver = false
+        gameStateRef?.trash = 0
+        gameStateRef?.distance = 0
         soundComponent.shared.setupAudioSession()
 
         setupPhysics()
         setupEdge()
         setupBackground()
         spawnSubmarine()
+        setupHUD()
 
         soundComponent.shared.playBGM(scene: self)
 
@@ -67,7 +80,43 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
 
+    private func setupHUD() {
+        hud = HUDView(sceneSize: size, mode: .game)
+        addChild(hud)
+        hud.distance = 0
+        hud.trashCount = 0
+    }
+
+    private func saveSessionResults() {
+        guard !hasSavedSession else { return }
+        hasSavedSession = true
+
+        let savedTotal = UserDefaults.standard.integer(forKey: "totalTrash")
+        UserDefaults.standard.set(savedTotal + sessionTrash, forKey: "totalTrash")
+
+        let savedHigh = UserDefaults.standard.integer(forKey: "highScore")
+        let sessionMeters = Int(sessionDistance)
+        if sessionMeters > savedHigh {
+            UserDefaults.standard.set(sessionMeters, forKey: "highScore")
+        }
+    }
+    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if gameStateRef?.isPaused == true || gameStateRef?.isGameOver == true {
+            return
+        }
+
+        if let touch = touches.first {
+            let location = touch.location(in: self)
+            for node in nodes(at: location) {
+                if node.name == "pauseButton" {
+                    gameStateRef?.isPaused = true
+                    return
+                }
+            }
+        }
+
+        playerEntity?.component(ofType: thrustComponent.self)?.isThrusting = true
         playerEntity?.component(ofType: thrustComponent.self)?.isThrusting =
             true
     }
@@ -78,6 +127,17 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     override func update(_ currentTime: TimeInterval) {
+        if gameStateRef?.shouldReturnHome == true {
+            navigateHome()
+            return
+        }
+
+        if wasGameOver, gameStateRef?.isGameOver == false {
+            wasGameOver = false
+            restartGame()
+            return
+        }
+
         if lastUpdateTime == 0 { lastUpdateTime = currentTime }
         var dt = currentTime - lastUpdateTime
         lastUpdateTime = currentTime
@@ -85,9 +145,19 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
         // Batasi dt agar tidak meloncat jauh kalau ada frame drop
         if dt > 0.05 { dt = 1.0 / 60.0 }
 
-        // 1. Update status magnet dari gameState
-        moveSystem.isMagnetActive = gameState?.isMagnetic ?? false
+        if gameStateRef?.isPaused == true || gameStateRef?.isGameOver == true {
+            if gameStateRef?.isGameOver == true { wasGameOver = true }
+            return
+        }
 
+        if !hasSavedSession {
+            sessionDistance += dt * 180
+            hud?.distance = Int(sessionDistance)
+        }
+        
+        // 1. Update status magnet dari gameState
+        moveSystem.isMagnetActive = gameStateRef?.isMagnetic ?? false
+        
         // 2. Kirim posisi kapal selam mengambil dari spriteNode
         if let subNode = playerEntity?.component(ofType: spriteComponent.self)?
             .node
@@ -101,6 +171,30 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
         posSystem.update(deltaTime: dt)
 
         cleanupOffScreenEntities()
+    }
+
+    private func navigateHome() {
+        gameStateRef?.isPaused = false
+        gameStateRef?.isGameOver = false
+        gameStateRef?.shouldReturnHome = false
+        gameStateRef?.currentScreen = .home
+
+        let home = homeScene(size: SceneSizeProvider.current(for: view))
+        home.scaleMode = .aspectFill
+        home.gameStateRef = gameStateRef
+        view?.presentScene(home, transition: SKTransition.fade(withDuration: 0.4))
+    }
+
+    private func restartGame() {
+        gameStateRef?.currentScreen = .game
+        gameStateRef?.shouldReturnHome = false
+        gameStateRef?.isPaused = false
+        gameStateRef?.isGameOver = false
+
+        let fresh = gameScene(size: SceneSizeProvider.current(for: view))
+        fresh.scaleMode = .aspectFill
+        fresh.gameStateRef = gameStateRef
+        view?.presentScene(fresh, transition: SKTransition.fade(withDuration: 0.3))
     }
 }
 
@@ -373,22 +467,15 @@ extension gameScene {
             guard trashNode?.name == "trash" else { return }
             trashNode?.name = "collected"
             trashNode?.removeFromParent()
+            
+            sessionTrash += 1
+            hud?.incrementTrash()
+            gameStateRef?.trash = sessionTrash
 
-        } else if collision == physicsCategory.submarine
-            | physicsCategory.obstacle
-        {
-            soundComponent.shared.obstacleHaptic()
-
-            soundComponent.shared.playExplosionSound(scene: self)
-
-            soundComponent.shared.stopBGM()
-
-        } else if collision == physicsCategory.submarine | physicsCategory.power
-        {
-            let powerNode =
-                bodyA == physicsCategory.power
-                ? contact.bodyA.node : contact.bodyB.node
-
+        }
+        else if collision == physicsCategory.submarine | physicsCategory.power {
+            let powerNode = bodyA == physicsCategory.power ? contact.bodyA.node : contact.bodyB.node
+            
             print("Power-up diambil!")
 
             guard powerNode?.name == "magnet" else { return }
@@ -396,14 +483,14 @@ extension gameScene {
             powerNode?.removeFromParent()
 
             // 1. Ubah state menjadi true
-            self.gameState?.isMagnetic = true
-
+            self.gameStateRef?.isMagnetic = true
+            
             // 2. Buat aksi menunggu 10 detik
             let waitAction = SKAction.wait(forDuration: 10.0)
 
             // 3. Buat aksi untuk mematikan magnet
             let turnOffAction = SKAction.run { [weak self] in
-                self?.gameState?.isMagnetic = false
+                self?.gameStateRef?.isMagnetic = false
                 print("Efek magnet telah habis!")
             }
 
@@ -413,9 +500,16 @@ extension gameScene {
             // 5. Jalankan dengan Key.
             // Jika pemain ambil magnet lagi di detik ke-9, timer lama akan otomatis ditimpa timer baru!
             self.run(magnetSequence, withKey: "magnet_timer")
+            
         } else if collision == physicsCategory.submarine
             | physicsCategory.obstacle
         {
+            soundComponent.shared.obstacleHaptic()
+
+            soundComponent.shared.playExplosionSound(scene: self)
+
+            soundComponent.shared.stopBGM()
+            
             print("GAME OVER: Menabrak rintangan!")
 
             removeAction(forKey: "entity_spawn")
@@ -425,10 +519,14 @@ extension gameScene {
                     .removeFromParent()
             }
             removeAction(forKey: "magnet_spawn")
+            
+            playerEntity?.component(ofType: spriteComponent.self)?.node.removeFromParent()
 
-            playerEntity?.component(ofType: spriteComponent.self)?.node
-                .removeFromParent()
-
+            saveSessionResults()
+            gameStateRef?.trash = sessionTrash
+            gameStateRef?.distance = CGFloat(sessionDistance)
+            gameStateRef?.isGameOver = true
+            wasGameOver = true
         }
     }
 }

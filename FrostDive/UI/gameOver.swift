@@ -45,7 +45,7 @@ struct gameOver: View {
                 HStack(spacing: 12) {
                     Button(action: {
                         gameState.isGameOver = false
-                        gameState.currentScreen = .home
+                        gameState.shouldReturnHome = true
                     }) {
                         Image("homeGameOver")
                             .resizable()
@@ -66,6 +66,7 @@ struct gameOver: View {
                 }
                 .padding(.bottom, 10)
             }
+            .padding(.top, 10)
         }
     }
 }

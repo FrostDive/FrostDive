@@ -13,6 +13,7 @@ struct pause: View {
     var body: some View {
         ZStack {
             Color.black.opacity(0.4).edgesIgnoringSafeArea(.all)
+
             VStack(spacing: 20) {
                 Text("PAUSE")
                     .font(.custom("milner", size: 55, relativeTo: .title))
@@ -29,7 +30,7 @@ struct pause: View {
                 
                 Button(action: {
                     gameState.isPaused = false
-                    gameState.currentScreen = .home
+                    gameState.shouldReturnHome = true
                 }) {
                     Image("homePause")
                         .resizable()
@@ -37,6 +38,7 @@ struct pause: View {
                         .frame(width: 220)
                 }
             }
+//            .offset(x: 35, y: 25)
         }
     }
 }

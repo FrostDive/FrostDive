@@ -17,6 +17,7 @@ class gameState: ObservableObject {
     @Published var isDarkScene: Bool = false
     @Published var isMagnetic: Bool = false
     @Published var currentScreen: AppScreen = .home
+    @Published var shouldReturnHome: Bool = false
 }
 
 enum AppScreen {
