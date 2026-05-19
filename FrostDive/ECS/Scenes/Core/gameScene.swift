@@ -39,7 +39,7 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
     var entities = [GKEntity]()
     var playerEntity: submarineEntity?
     var gameStateRef: gameState?
-    
+
     // Systems
     lazy var posSystem = positionSystem(componentClass: positionComponent.self)
     lazy var moveSystem = MovementSystem(sceneSize: self.size)
@@ -50,7 +50,7 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
     private var sessionTrash: Int = 0
     private var hasSavedSession = false
     private var wasGameOver = false
-    
+
     // Time tracking untuk mencegah glitch pergerakan
     var lastUpdateTime: TimeInterval = 0
 
@@ -83,9 +83,9 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
 
     private func setupHUD() {
         hud = HUDView(sceneSize: size, mode: .game)
-        
+
         hud.zPosition = 100
-        
+
         addChild(hud)
         hud.distance = 0
         hud.trashCount = 0
@@ -96,7 +96,10 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
         hasSavedSession = true
 
         let savedTotal = UserDefaults.standard.integer(forKey: "totalTrash")
-        UserDefaults.standard.set(savedTotal + sessionTrash, forKey: "totalTrash")
+        UserDefaults.standard.set(
+            savedTotal + sessionTrash,
+            forKey: "totalTrash"
+        )
 
         let savedHigh = UserDefaults.standard.integer(forKey: "highScore")
         let sessionMeters = Int(sessionDistance)
@@ -104,7 +107,7 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
             UserDefaults.standard.set(sessionMeters, forKey: "highScore")
         }
     }
-    
+
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if gameStateRef?.isPaused == true || gameStateRef?.isGameOver == true {
             return
@@ -120,7 +123,8 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
             }
         }
 
-        playerEntity?.component(ofType: thrustComponent.self)?.isThrusting = true
+        playerEntity?.component(ofType: thrustComponent.self)?.isThrusting =
+            true
         playerEntity?.component(ofType: thrustComponent.self)?.isThrusting =
             true
     }
@@ -158,10 +162,10 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
             sessionDistance += dt * 180
             hud?.distance = Int(sessionDistance)
         }
-        
+
         // 1. Update status magnet dari gameState
         moveSystem.isMagnetActive = gameStateRef?.isMagnetic ?? false
-        
+
         // 2. Kirim posisi kapal selam mengambil dari spriteNode
         if let subNode = playerEntity?.component(ofType: spriteComponent.self)?
             .node
@@ -186,7 +190,10 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
         let home = homeScene(size: SceneSizeProvider.current(for: view))
         home.scaleMode = .aspectFill
         home.gameStateRef = gameStateRef
-        view?.presentScene(home, transition: SKTransition.fade(withDuration: 0.4))
+        view?.presentScene(
+            home,
+            transition: SKTransition.fade(withDuration: 0.4)
+        )
     }
 
     private func restartGame() {
@@ -198,7 +205,10 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
         let fresh = gameScene(size: SceneSizeProvider.current(for: view))
         fresh.scaleMode = .aspectFill
         fresh.gameStateRef = gameStateRef
-        view?.presentScene(fresh, transition: SKTransition.fade(withDuration: 0.3))
+        view?.presentScene(
+            fresh,
+            transition: SKTransition.fade(withDuration: 0.3)
+        )
     }
 }
 
@@ -483,15 +493,17 @@ extension gameScene {
             guard trashNode?.name == "trash" else { return }
             trashNode?.name = "collected"
             trashNode?.removeFromParent()
-            
+
             sessionTrash += 1
             hud?.incrementTrash()
             gameStateRef?.trash = sessionTrash
 
-        }
-        else if collision == physicsCategory.submarine | physicsCategory.power {
-            let powerNode = bodyA == physicsCategory.power ? contact.bodyA.node : contact.bodyB.node
-            
+        } else if collision == physicsCategory.submarine | physicsCategory.power
+        {
+            let powerNode =
+                bodyA == physicsCategory.power
+                ? contact.bodyA.node : contact.bodyB.node
+
             print("Power-up diambil!")
 
             guard powerNode?.name == "magnet" else { return }
@@ -500,7 +512,7 @@ extension gameScene {
 
             // 1. Ubah state menjadi true
             self.gameStateRef?.isMagnetic = true
-            
+
             // 2. Buat aksi menunggu 10 detik
             let waitAction = SKAction.wait(forDuration: 10.0)
 
@@ -516,16 +528,19 @@ extension gameScene {
             // 5. Jalankan dengan Key.
             // Jika pemain ambil magnet lagi di detik ke-9, timer lama akan otomatis ditimpa timer baru!
             self.run(magnetSequence, withKey: "magnet_timer")
-            
+
         } else if collision == physicsCategory.submarine
             | physicsCategory.obstacle
         {
+            let submarinePosition =
+                playerEntity?
+                .component(ofType: spriteComponent.self)?.node.position
+                ?? CGPoint(x: size.width * 0.2, y: size.height / 2)
+
             soundComponent.shared.obstacleHaptic()
-
             soundComponent.shared.playExplosionSound(scene: self)
-
             soundComponent.shared.stopBGM()
-            
+
             print("GAME OVER: Menabrak rintangan!")
 
             removeAction(forKey: "entity_spawn")
@@ -542,8 +557,66 @@ extension gameScene {
             saveSessionResults()
             gameStateRef?.trash = sessionTrash
             gameStateRef?.distance = CGFloat(sessionDistance)
-            gameStateRef?.isGameOver = true
-            wasGameOver = true
+            //            gameStateRef?.isGameOver = true
+            //            wasGameOver = true
+
+            spawnExplosion(at: submarinePosition) { [weak self] in
+                self?.fadeToBlackThenGameOver()
+            }
         }
+    }
+}
+
+// MARK: - Explosion
+extension gameScene {
+    func spawnExplosion(at position: CGPoint, completion: @escaping () -> Void)
+    {
+        let explosionSize = CGSize(width: 120, height: 120)
+        let texture = SKTexture(imageNamed: "explosion")
+
+        let explosionNode = SKSpriteNode(
+            texture: texture,
+            size: explosionSize
+        )
+        explosionNode.position = position
+        explosionNode.zPosition = 50
+        explosionNode.name = "explosion"
+        explosionNode.setScale(0.3)
+        addChild(explosionNode)
+
+        let scaleUp = SKAction.scale(to: 1.8, duration: 0.4)
+        scaleUp.timingMode = .easeOut
+
+        let rotate = SKAction.rotate(byAngle: .pi / 3, duration: 0.4)
+
+        let explodeAnimation = SKAction.group([scaleUp, rotate])
+
+        let cleanup = SKAction.run {
+            explosionNode.removeFromParent()
+            completion()
+        }
+
+        explosionNode.run(SKAction.sequence([explodeAnimation, cleanup]))
+    }
+
+    func fadeToBlackThenGameOver() {
+        let blackOverlay = SKSpriteNode(
+            color: UIColor.black.withAlphaComponent(0.6),
+            size: self.size
+        )
+        blackOverlay.anchorPoint = CGPoint(x: 0, y: 0)
+        blackOverlay.position = .zero
+        blackOverlay.zPosition = 200
+        blackOverlay.alpha = 0
+        blackOverlay.name = "fadeOverlay"
+        addChild(blackOverlay)
+
+        let fadeIn = SKAction.fadeAlpha(to: 1.0, duration: 0.4)
+        let triggerGameOver = SKAction.run { [weak self] in
+            self?.gameStateRef?.isGameOver = true
+            self?.wasGameOver = true
+        }
+
+        blackOverlay.run(SKAction.sequence([fadeIn, triggerGameOver]))
     }
 }
