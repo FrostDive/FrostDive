@@ -254,9 +254,17 @@ extension gameScene {
     }
 
     private func spawnSubmarine() {
+        let equippedSub = UserDefaults.standard.integer(forKey: "equippedSubmarine")
+        let subName: String
+        if equippedSub <= 0 {
+            subName = "submarine1"
+        } else {
+            subName = "submarine\(equippedSub)"
+        }
+        
         let startPos = CGPoint(x: size.width * 0.2, y: size.height / 2)
         let submarine = submarineEntity(
-            imageName: "submarine1",
+            imageName: subName,
             size: CGSize(width: 120, height: 82),
             startPosition: startPos
         )
@@ -269,7 +277,7 @@ extension gameScene {
             thrustSys.addComponent(t)
         }
         
-        let flashlight = flashlightComponent()
+        let flashlight = flashlightComponent(scene: self)
         submarine.addComponent(flashlight)
         flashlight.startLightingCycle()
 
@@ -527,6 +535,7 @@ extension gameScene {
             }
             removeAction(forKey: "magnet_spawn")
             
+            playerEntity?.component(ofType: flashlightComponent.self)?.containerNode.removeFromParent()
             playerEntity?.component(ofType: spriteComponent.self)?.node.removeFromParent()
 
             saveSessionResults()
