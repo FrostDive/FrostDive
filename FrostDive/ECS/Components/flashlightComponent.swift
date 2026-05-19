@@ -103,7 +103,7 @@ class flashlightComponent: GKComponent {
     }
     
     func startLightingCycle() {
-        let waitDaylight = SKAction.wait(forDuration: 1.0)
+        let waitDaylight = SKAction.wait(forDuration: 30.0)
         let fadeToDark = SKAction.fadeAlpha(to: 1.0, duration: 1.5)
         let waitDarkness = SKAction.wait(forDuration: 10.0)
         let fadeToLight = SKAction.fadeAlpha(to: 0.0, duration: 1.5)
