@@ -60,6 +60,7 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
         gameStateRef?.shouldReturnHome = false
         gameStateRef?.isPaused = false
         gameStateRef?.isGameOver = false
+        gameStateRef?.isMagnetic = false
         gameStateRef?.trash = 0
         gameStateRef?.distance = 0
         soundComponent.shared.setupAudioSession()
