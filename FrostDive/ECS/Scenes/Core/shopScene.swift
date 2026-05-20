@@ -113,7 +113,7 @@ class shopScene: SKScene {
         let backButton = SKSpriteNode(imageNamed: "backShopTop")
         
         backButton.size     = CGSize(width: 80, height: 30)
-        backButton.position = CGPoint(x: 90, y: barY)
+        backButton.position = CGPoint(x: 90, y: barY - 5)
         backButton.name     = "backButton"
         backButton.zPosition = 20
         
