@@ -12,10 +12,10 @@ class shopScene: SKScene {
     private let submarines: [SubmarineItem] = [
         SubmarineItem(index: 1, price: 0),
         SubmarineItem(index: 2, price: 500),
-        SubmarineItem(index: 3, price: 1_200),
-        SubmarineItem(index: 4, price: 5_000),
-        SubmarineItem(index: 5, price: 5_000),
-        SubmarineItem(index: 6, price: 15_000),
+        SubmarineItem(index: 3, price: 750),
+        SubmarineItem(index: 4, price: 1_000),
+        SubmarineItem(index: 5, price: 2_000),
+        SubmarineItem(index: 6, price: 3_000),
     ]
 
     private let kTotalTrash  = "totalTrash"
@@ -210,9 +210,10 @@ class shopScene: SKScene {
         } else {
             switch sub.price {
             case 500:    bgAsset = "button500"
-            case 1_200:  bgAsset = "button1200"
-            case 5_000:  bgAsset = "button5000"
-            case 15_000: bgAsset = "button15000"
+            case 750:  bgAsset = "button750"
+            case 1_000:  bgAsset = "button1000"
+            case 2_000: bgAsset = "button2000"
+            case 3_000: bgAsset = "button3000"
             default:     bgAsset = "button500"
             }
         }
