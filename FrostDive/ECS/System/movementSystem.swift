@@ -14,6 +14,7 @@ class MovementSystem: GKComponentSystem<movementComponent> {
     
     var isMagnetActive: Bool = false
     var submarinePosition: CGPoint?
+    var speedMultiplier: CGFloat = 1.0
     
     init(sceneSize: CGSize) {
         self.sceneSize = sceneSize
@@ -26,7 +27,7 @@ class MovementSystem: GKComponentSystem<movementComponent> {
                   let posComp = entity.component(ofType: positionComponent.self) else { continue }
             
             // Gerakkan ke kiri
-            posComp.position.x -= component.speed
+            posComp.position.x -= (component.speed * speedMultiplier)
             
             // Logika Looping untuk 15 Background
             if entity is backgroundEntity {

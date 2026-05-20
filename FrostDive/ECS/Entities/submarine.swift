@@ -9,7 +9,9 @@ import SpriteKit
 import GameplayKit
 
 class submarineEntity: GKEntity {
+    let baseName: String
     init(imageName: String, size: CGSize, startPosition: CGPoint) {
+        self.baseName = imageName
         super.init()
         
         let texture: SKTexture = .init(imageNamed: imageName)
@@ -30,5 +32,13 @@ class submarineEntity: GKEntity {
             spriteNode.physicsBody?.collisionBitMask = physicsCategory.edge
         }
     }
+    
+    func setMagnetSubmarineTexture(isActive: Bool) {
+        let textureName = isActive ? "\(baseName)_magnet" : baseName
+        let newTexture = SKTexture(imageNamed: textureName)
+        
+        self.component(ofType: spriteComponent.self)?.updateTexture(newTexture)
+    }
+    
     required init?(coder: NSCoder) { fatalError() }
 }
