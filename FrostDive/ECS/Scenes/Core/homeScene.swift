@@ -108,19 +108,31 @@ class homeScene: SKScene {
     
     private func setupSubmarine() {
         let equippedSub = UserDefaults.standard.integer(forKey: "equippedSubmarine")
+
         let subName: String
         if equippedSub <= 0 {
             subName = "submarine1"
         } else {
             subName = "submarine\(equippedSub)"
         }
-        
+
         submarine = SKSpriteNode(imageNamed: subName)
-        let subWidth: CGFloat = 160
+
+        let subWidth: CGFloat = (subName == "submarine5") ? 130 : 160
         let subAspect = submarine.size.height / max(submarine.size.width, 1)
-        submarine.size = CGSize(width: subWidth, height: subWidth * subAspect)
-        submarine.position = CGPoint(x: size.width / 2, y: size.height * 0.40)
+
+        submarine.size = CGSize(
+            width: subWidth,
+            height: subWidth * subAspect
+        )
+
+        submarine.position = CGPoint(
+            x: size.width / 2,
+            y: size.height * 0.40
+        )
+
         submarine.zPosition = 5
+
         addChild(submarine)
     }
     

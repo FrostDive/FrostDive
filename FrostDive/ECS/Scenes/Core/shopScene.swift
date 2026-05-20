@@ -12,10 +12,10 @@ class shopScene: SKScene {
     private let submarines: [SubmarineItem] = [
         SubmarineItem(index: 1, price: 0),
         SubmarineItem(index: 2, price: 500),
-        SubmarineItem(index: 3, price: 1_200),
-        SubmarineItem(index: 4, price: 5_000),
-        SubmarineItem(index: 5, price: 5_000),
-        SubmarineItem(index: 6, price: 15_000),
+        SubmarineItem(index: 3, price: 750),
+        SubmarineItem(index: 4, price: 1_000),
+        SubmarineItem(index: 5, price: 2_000),
+        SubmarineItem(index: 6, price: 3_000),
     ]
 
     private let kTotalTrash  = "totalTrash"
@@ -44,6 +44,7 @@ class shopScene: SKScene {
 
     // MARK: - node references
 
+    private var previewContainer: SKNode!
     private var previewNode: SKSpriteNode!
     private var hudView: HUDView!
     private var popupNode: SKNode?
@@ -105,32 +106,19 @@ class shopScene: SKScene {
     }
 
     // MARK: top bar
-
+    
     private func buildTopBar() {
-        let barY: CGFloat = size.height - 22
+        let barY: CGFloat = size.height - 35
+        let leftMargin: CGFloat = 92
 
-        // back button: icon + label "Back" dalam satu group
-        let backGroup = SKNode()
-        backGroup.name      = "backButton"
-        backGroup.zPosition = 20
-        backGroup.position  = CGPoint(x: 82, y: barY)
-        addChild(backGroup)
-
-        let backIcon = SKSpriteNode(imageNamed: "backIcon")
-        backIcon.size     = CGSize(width: 24, height: 24)
-        backIcon.position = .zero
-        backIcon.name     = "backButton"
-        backGroup.addChild(backIcon)
-
-        let backLbl = SKLabelNode(fontNamed: "AvenirNext-Heavy")
-        backLbl.text                    = "Back"
-        backLbl.fontSize                = 16
-        backLbl.fontColor               = .white
-        backLbl.horizontalAlignmentMode = .left
-        backLbl.verticalAlignmentMode   = .center
-        backLbl.position                = CGPoint(x: 16, y: 0)
-        backLbl.name                    = "backButton"
-        backGroup.addChild(backLbl)
+        let backButton = SKSpriteNode(imageNamed: "backShopTop")
+        
+        backButton.size     = CGSize(width: 80, height: 30)
+        backButton.position = CGPoint(x: leftMargin, y: barY)
+        backButton.name     = "backButton"
+        backButton.zPosition = 20
+        
+        addChild(backButton)
 
         hudView = HUDView(sceneSize: size, mode: .homeShop)
         addChild(hudView)
@@ -141,18 +129,26 @@ class shopScene: SKScene {
     // MARK: preview panel (kiri)
 
     private func buildPreviewPanel() {
-        let preview = SKSpriteNode(imageNamed: "submarine\(equippedSub)")
-        let pNative = preview.size
-        if pNative.width > 0 && pNative.height > 0 {
-            let sc = min(previewMaxW / pNative.width, previewMaxH / pNative.height)
-            preview.setScale(sc)
-        }
-        previewBaseY      = size.height * 0.46
-        preview.position  = CGPoint(x: size.width * 0.22, y: previewBaseY)
-        preview.zPosition = 5
-        preview.name      = "previewSprite"
-        addChild(preview)
-        previewNode = preview
+        previewBaseY = size.height * 0.46
+        
+        // Fix container untuk preview bagian kiri
+        previewContainer = SKNode()
+        previewContainer.position  = CGPoint(x: size.width * 0.22, y: previewBaseY)
+        previewContainer.zPosition = 5
+        addChild(previewContainer)
+        
+        previewNode = SKSpriteNode(imageNamed: "submarine\(equippedSub)")
+        previewNode.name = "previewSprite"
+        previewContainer.addChild(previewNode)
+        
+        refreshPreview()
+
+        // Animate the container
+        let up   = SKAction.moveTo(y: previewBaseY + 8, duration: 1.0)
+        let down = SKAction.moveTo(y: previewBaseY - 8, duration: 1.0)
+        up.timingMode   = .easeInEaseOut
+        down.timingMode = .easeInEaseOut
+        previewContainer.run(SKAction.repeatForever(SKAction.sequence([up, down])))
     }
 
     // MARK: grid (kanan)
@@ -214,9 +210,10 @@ class shopScene: SKScene {
         } else {
             switch sub.price {
             case 500:    bgAsset = "button500"
-            case 1_200:  bgAsset = "button1200"
-            case 5_000:  bgAsset = "button5000"
-            case 15_000: bgAsset = "button15000"
+            case 750:  bgAsset = "button750"
+            case 1_000:  bgAsset = "button1000"
+            case 2_000: bgAsset = "button2000"
+            case 3_000: bgAsset = "button3000"
             default:     bgAsset = "button500"
             }
         }
@@ -249,21 +246,20 @@ class shopScene: SKScene {
     private func refreshPreview() {
         let tex = SKTexture(imageNamed: "submarine\(equippedSub)")
         previewNode.texture = tex
-        // recalculate scale dari texture baru supaya ukuran tetap konsisten
+        
+        // Reset scale to 1.0 before recalculating to ensure accurate native sizes
+        previewNode.setScale(1.0)
+        previewNode.size = tex.size()
+        
+        // Recalculate scale from the new texture so it fits perfectly inside the max bounds
         let nSz = tex.size()
         if nSz.width > 0 && nSz.height > 0 {
             let sc = min(previewMaxW / nSz.width, previewMaxH / nSz.height)
             previewNode.setScale(sc)
         }
-        // reset posisi ke base sebelum mulai animasi — cegah drift ke atas
-        previewNode.removeAllActions()
-        previewNode.position = CGPoint(x: size.width * 0.22, y: previewBaseY)
-
-        let up   = SKAction.moveTo(y: previewBaseY + 8, duration: 1.0)
-        let down = SKAction.moveTo(y: previewBaseY - 8, duration: 1.0)
-        up.timingMode   = .easeInEaseOut
-        down.timingMode = .easeInEaseOut
-        previewNode.run(SKAction.repeatForever(SKAction.sequence([up, down])))
+        
+        // Keep the sprite perfectly centered inside the container frame
+        previewNode.position = .zero
     }
 
     // MARK: - popups
@@ -386,10 +382,9 @@ class shopScene: SKScene {
     }
 
     private func presentPopup(_ popup: SKNode) {
-        popup.setScale(0.1)
+        popup.setScale(1.0)
         addChild(popup)
         popupNode = popup
-        popup.run(SKAction.scale(to: 1.0, duration: 0.22))
     }
 
     private func dismissPopup() {

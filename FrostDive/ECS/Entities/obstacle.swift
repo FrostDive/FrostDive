@@ -20,10 +20,15 @@ class obstacleEntity: GKEntity {
         
         // 2. Data Gerak (Ini yang membuat dia bisa bergerak)
         addComponent(movementComponent(speed: speed))
+        // Jarak 15, kecepatan gelombang standar (2.0)
+        if imageName == "bomb" {
+            
+            addComponent(animationComponent(distance: 15.0, speed: 2.0))
+        }
         
         // 3. Konfigurasi Fisika
         if let spriteNode = component(ofType: spriteComponent.self)?.node {
-            spriteNode.name = "trash"
+            spriteNode.name = "obstacle"
             spriteNode.physicsBody = SKPhysicsBody(texture: texture, size: size)
             spriteNode.physicsBody?.isDynamic = false // Agar tidak jatuh kena gravitasi
             spriteNode.physicsBody?.categoryBitMask = physicsCategory.obstacle

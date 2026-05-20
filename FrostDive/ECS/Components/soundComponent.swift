@@ -45,6 +45,17 @@ class soundComponent: GKComponent {
 
         scene.run(action)
     }
+    
+    func playCollectMagnetSound(scene: SKScene) {
+        print("PLAY collect magnet SOUND")
+
+        let action = SKAction.playSoundFileNamed(
+            "powerUp.wav",
+            waitForCompletion: false
+        )
+
+        scene.run(action)
+    }
 
     func playExplosionSound(scene: SKScene) {
         print("PLAY EXPLOSION SOUND")

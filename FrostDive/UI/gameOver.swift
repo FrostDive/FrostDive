@@ -19,6 +19,7 @@ struct gameOver: View {
                 .scaledToFit()
                 .frame(width: 600)
                 .edgesIgnoringSafeArea(.all)
+                .padding(.top, 18)
             
             VStack {
                 Text("GAME OVER")
@@ -34,7 +35,7 @@ struct gameOver: View {
                     .foregroundColor(Color(hex: "#005085"))
                 
                 HStack{
-                    Text("Total Trash: ")
+                    Text("Total Trash:")
                         .font(.custom("milner", size: 30, relativeTo: .title))
                         .foregroundColor(Color(hex: "#75B5D1"))
                     Text("\(gameState.trash)")
