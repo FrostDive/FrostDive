@@ -27,7 +27,8 @@ class HUDView: SKNode {
     // Sizing per mode
     private let distanceIconSize: CGSize
     private let trashIconSize: CGSize
-    private let labelFontSize: CGFloat
+    private let distanceLabelFontSize: CGFloat
+    private let trashLabelFontSize: CGFloat
 
     // Public state
     var distance: Int = 0 {
@@ -50,14 +51,15 @@ class HUDView: SKNode {
 
         switch mode {
         case .game:
-            // distance icon sedikit lebih besar dari trash
-            self.distanceIconSize = CGSize(width: 30, height: 30)
-            self.trashIconSize = CGSize(width: 24, height: 24)
-            self.labelFontSize = 16
+            self.distanceIconSize = CGSize(width: 40, height: 40)
+            self.trashIconSize = CGSize(width: 28, height: 28)
+            self.distanceLabelFontSize = 22
+            self.trashLabelFontSize = 18
         case .homeShop:
-            self.distanceIconSize = CGSize(width: 28, height: 23)
-            self.trashIconSize = CGSize(width: 27.23, height: 23.61)
-            self.labelFontSize = 16
+            self.distanceIconSize = CGSize(width: 32, height: 26)
+            self.trashIconSize = CGSize(width: 31, height: 27)
+            self.distanceLabelFontSize = 18
+            self.trashLabelFontSize = 18
         }
 
         super.init()
@@ -83,17 +85,16 @@ class HUDView: SKNode {
     }
 
     private func setupGameHUD() {
-        // Pause button (top left) — sedikit dipinggirkan biar tidak kepotong safe area
         let pause = SKSpriteNode(imageNamed: "pauseIcon")
         pause.size = CGSize(width: 32, height: 32)
-        pause.position = CGPoint(x: 50, y: sceneSize.height - 30)
+        pause.position = CGPoint(x: 64, y: sceneSize.height - 46)
         pause.name = "pauseButton"
         pause.zPosition = 100
         addChild(pause)
         pauseButton = pause
 
         // Distance (baris atas, kanan)
-        distanceLabel = makeLabel(text: "0m")
+        distanceLabel = makeLabel(text: "0m", fontSize: distanceLabelFontSize)
         addChild(distanceLabel)
 
         distanceIcon = SKSpriteNode(imageNamed: "distanceIcon")
@@ -102,7 +103,7 @@ class HUDView: SKNode {
         addChild(distanceIcon)
 
         // Trash (baris bawah, kanan)
-        trashLabel = makeLabel(text: "0")
+        trashLabel = makeLabel(text: "0", fontSize: trashLabelFontSize)
         addChild(trashLabel)
 
         trashIcon = SKSpriteNode(imageNamed: "trashIcon")
@@ -113,7 +114,7 @@ class HUDView: SKNode {
 
     private func setupHomeShopHUD() {
         // Trash (kanan)
-        trashLabel = makeLabel(text: "0")
+        trashLabel = makeLabel(text: "0", fontSize: trashLabelFontSize)
         addChild(trashLabel)
 
         trashIcon = SKSpriteNode(imageNamed: "trashIcon")
@@ -122,7 +123,7 @@ class HUDView: SKNode {
         addChild(trashIcon)
 
         // Distance (kiri trash)
-        distanceLabel = makeLabel(text: "0m")
+        distanceLabel = makeLabel(text: "0m", fontSize: distanceLabelFontSize)
         addChild(distanceLabel)
 
         distanceIcon = SKSpriteNode(imageNamed: "distanceIcon")
@@ -131,10 +132,10 @@ class HUDView: SKNode {
         addChild(distanceIcon)
     }
 
-    private func makeLabel(text: String) -> SKLabelNode {
-        let label = SKLabelNode(fontNamed: "AvenirNext-Bold")
+    private func makeLabel(text: String, fontSize: CGFloat) -> SKLabelNode {
+        let label = SKLabelNode(fontNamed: "milner")
         label.text = text
-        label.fontSize = labelFontSize
+        label.fontSize = fontSize
         label.fontColor = .white
         label.horizontalAlignmentMode = .left
         label.verticalAlignmentMode = .center
@@ -155,58 +156,48 @@ class HUDView: SKNode {
     private func layoutGame() {
         guard distanceLabel != nil, trashLabel != nil else { return }
 
-        let rightMargin: CGFloat = 20
-        let topY = sceneSize.height - 22
-        let rowGap: CGFloat = 30
+        let rightMargin: CGFloat = 32
+        let topY = sceneSize.height - 44
+        let rowGap: CGFloat = 50
         let iconLabelGap: CGFloat = 6
 
         // Baris distance (atas)
         let dLabelWidth = distanceLabel.frame.width
-        let dLabelX = sceneSize.width - rightMargin - dLabelWidth
+        let dIconX = sceneSize.width - rightMargin - distanceIconSize.width / 2
+        let dLabelX = dIconX - distanceIconSize.width / 2 - iconLabelGap - dLabelWidth
         distanceLabel.position = CGPoint(x: dLabelX, y: topY)
-        distanceIcon.position = CGPoint(
-            x: dLabelX - iconLabelGap - distanceIconSize.width / 2,
-            y: topY
-        )
+        distanceIcon.position = CGPoint(x: dIconX, y: topY)
 
         // Baris trash (bawah)
         let tLabelWidth = trashLabel.frame.width
-        let tLabelX = sceneSize.width - rightMargin - tLabelWidth
+        let tIconX = sceneSize.width - rightMargin - trashIconSize.width / 2
+        let tLabelX = tIconX - trashIconSize.width / 2 - iconLabelGap - tLabelWidth
         trashLabel.position = CGPoint(x: tLabelX, y: topY - rowGap)
-        trashIcon.position = CGPoint(
-            x: tLabelX - iconLabelGap - trashIconSize.width / 2,
-            y: topY - rowGap
-        )
+        trashIcon.position = CGPoint(x: tIconX, y: topY - rowGap)
     }
 
     private func layoutHomeShop() {
         guard distanceLabel != nil, trashLabel != nil else { return }
 
-        // Sesuai layout home sebelumnya: ada margin kanan yang cukup
-        // dan jarak antar group besar.
-        let topY = sceneSize.height - 22
-        let rightMargin: CGFloat = 90
+        let topY = sceneSize.height - 35
+        let rightMargin: CGFloat = 40
         let iconLabelGap: CGFloat = 6
         let groupGap: CGFloat = 56
 
         // Group trash (kanan)
         let tLabelWidth = trashLabel.frame.width
-        let tLabelX = sceneSize.width - rightMargin - tLabelWidth
+        let tIconX = sceneSize.width - rightMargin - trashIconSize.width / 2
+        let tLabelX = tIconX - trashIconSize.width / 2 - iconLabelGap - tLabelWidth
         trashLabel.position = CGPoint(x: tLabelX, y: topY)
-        trashIcon.position = CGPoint(
-            x: tLabelX - iconLabelGap - trashIconSize.width / 2,
-            y: topY
-        )
+        trashIcon.position = CGPoint(x: tIconX, y: topY)
 
         // Group distance (kiri trash)
         let dLabelWidth = distanceLabel.frame.width
-        let trashGroupLeftX = trashIcon.position.x - trashIconSize.width / 2
-        let dLabelX = trashGroupLeftX - groupGap - dLabelWidth
+        let trashGroupLeftX = tLabelX
+        let dIconX = trashGroupLeftX - groupGap - distanceIconSize.width / 2
+        let dLabelX = dIconX - distanceIconSize.width / 2 - iconLabelGap - dLabelWidth
         distanceLabel.position = CGPoint(x: dLabelX, y: topY)
-        distanceIcon.position = CGPoint(
-            x: dLabelX - iconLabelGap - distanceIconSize.width / 2,
-            y: topY
-        )
+        distanceIcon.position = CGPoint(x: dIconX, y: topY)
     }
 
     // MARK: - API
@@ -234,7 +225,7 @@ class HUDView: SKNode {
         trashIcon.run(pop)
         trashLabel.run(pop)
 
-        let plusLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
+        let plusLabel = SKLabelNode(fontNamed: "milner")
         plusLabel.text = "+1"
         plusLabel.fontSize = 18
         plusLabel.fontColor = SKColor(red: 0.3, green: 1.0, blue: 0.5, alpha: 1.0)
