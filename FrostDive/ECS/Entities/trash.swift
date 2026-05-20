@@ -21,6 +21,9 @@ class trashEntity: GKEntity {
         
         // 2. Data Gerak (Ini yang membuat dia bisa bergerak)
         addComponent(movementComponent(speed: speed))
+        // Jarak 15, kecepatan gelombang standar (2.0)
+        addComponent(animationComponent(distance: 15.0, speed: 2.0))
+        
         
         // 3. Konfigurasi Fisika
         if let spriteNode = component(ofType: spriteComponent.self)?.node {
@@ -30,6 +33,7 @@ class trashEntity: GKEntity {
             spriteNode.physicsBody?.categoryBitMask = physicsCategory.trash
             spriteNode.physicsBody?.contactTestBitMask = physicsCategory.submarine
             spriteNode.physicsBody?.collisionBitMask = physicsCategory.none
+            
         }
     }
     required init?(coder: NSCoder) { fatalError() }

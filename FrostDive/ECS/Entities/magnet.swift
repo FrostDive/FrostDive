@@ -20,6 +20,8 @@ class magnetEntity: GKEntity {
         
         // 2. Data Gerak (Ini yang membuat dia bisa bergerak)
         addComponent(movementComponent(speed: speed))
+        // Jarak 15, kecepatan gelombang standar (2.0)
+        addComponent(animationComponent(distance: 140.0, speed: 2.0))
         
         // 3. Konfigurasi Fisika
         if let spriteNode = component(ofType: spriteComponent.self)?.node {
