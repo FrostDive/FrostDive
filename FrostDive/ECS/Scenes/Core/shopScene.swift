@@ -106,14 +106,15 @@ class shopScene: SKScene {
     }
 
     // MARK: top bar
-
+    
     private func buildTopBar() {
-        let barY: CGFloat = size.height - 22
+        let barY: CGFloat = size.height - 35
+        let leftMargin: CGFloat = 92
 
         let backButton = SKSpriteNode(imageNamed: "backShopTop")
         
         backButton.size     = CGSize(width: 80, height: 30)
-        backButton.position = CGPoint(x: 90, y: barY - 5)
+        backButton.position = CGPoint(x: leftMargin, y: barY)
         backButton.name     = "backButton"
         backButton.zPosition = 20
         
