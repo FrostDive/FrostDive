@@ -300,14 +300,16 @@ extension gameScene {
     }
     
     private func spawnSubmarine() {
-        let equippedSub = UserDefaults.standard.integer(forKey: "equippedSubmarine")
+        let equippedSub = UserDefaults.standard.integer(
+            forKey: "equippedSubmarine"
+        )
         let subName: String
         if equippedSub <= 0 {
             subName = "submarine1_game"
         } else {
             subName = "submarine\(equippedSub)_game"
         }
-        
+
         let startPos = CGPoint(x: size.width * 0.2, y: size.height / 2)
         let submarine = submarineEntity(
             imageName: subName,
@@ -321,7 +323,7 @@ extension gameScene {
         if let t = submarine.component(ofType: thrustComponent.self) {
             thrustSys.addComponent(t)
         }
-        
+
         let flashlight = flashlightComponent(scene: self)
         submarine.addComponent(flashlight)
         flashlight.startLightingCycle()
@@ -579,33 +581,36 @@ extension gameScene {
         } else if collision == physicsCategory.submarine | physicsCategory.power
         {
             let powerNode =
-            bodyA == physicsCategory.power
-            ? contact.bodyA.node : contact.bodyB.node
-            
+                bodyA == physicsCategory.power
+                ? contact.bodyA.node : contact.bodyB.node
+
+            soundComponent.shared.playCollectMagnetSound(scene: self)
+
             print("Power-up diambil!")
             
             guard powerNode?.name == "magnet" else { return }
             powerNode?.name = "collected"
             powerNode?.removeFromParent()
-            
-            // 1. Ubah state menjadi true
+
             self.gameStateRef?.isMagnetic = true
             
             self.playerEntity?.setMagnetSubmarineTexture(isActive: true)
             
             // 2. Buat aksi menunggu 10 detik
             let waitAction = SKAction.wait(forDuration: 10.0)
-            
-            // 3. Buat aksi untuk mematikan magnet
+
             let turnOffAction = SKAction.run { [weak self] in
                 self?.gameStateRef?.isMagnetic = false
-                
-                self?.playerEntity?.setMagnetSubmarineTexture(isActive: false)
+
+                if let self = self {
+                    soundComponent.shared.playCollectMagnetSound(scene: self)
+                }
+
                 print("Efek magnet telah habis!")
             }
-            
-            // 4. Rangkai aksinya
+
             let magnetSequence = SKAction.sequence([waitAction, turnOffAction])
+
             
             // 5. Jalankan dengan Key.
             // Jika pemain ambil magnet lagi di detik ke-9, timer lama akan otomatis ditimpa timer baru!
@@ -632,16 +637,16 @@ extension gameScene {
                     .removeFromParent()
             }
             removeAction(forKey: "magnet_spawn")
-            
-            playerEntity?.component(ofType: flashlightComponent.self)?.containerNode.removeFromParent()
-            playerEntity?.component(ofType: spriteComponent.self)?.node.removeFromParent()
-            
+
+            playerEntity?.component(ofType: flashlightComponent.self)?
+                .containerNode.removeFromParent()
+            playerEntity?.component(ofType: spriteComponent.self)?.node
+                .removeFromParent()
+
             saveSessionResults()
             gameStateRef?.trash = sessionTrash
             gameStateRef?.distance = CGFloat(sessionDistance)
-            //            gameStateRef?.isGameOver = true
-            //            wasGameOver = true
-            
+
             spawnExplosion(at: submarinePosition) { [weak self] in
                 self?.fadeToBlackThenGameOver()
             }
@@ -683,7 +688,7 @@ extension gameScene {
     
     func fadeToBlackThenGameOver() {
         let blackOverlay = SKSpriteNode(
-            color: UIColor.black.withAlphaComponent(0.6),
+            color: UIColor.black.withAlphaComponent(0.5),
             size: self.size
         )
         blackOverlay.anchorPoint = CGPoint(x: 0, y: 0)
