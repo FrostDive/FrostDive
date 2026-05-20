@@ -12,10 +12,10 @@ class shopScene: SKScene {
     private let submarines: [SubmarineItem] = [
         SubmarineItem(index: 1, price: 0),
         SubmarineItem(index: 2, price: 500),
-        SubmarineItem(index: 3, price: 1_200),
-        SubmarineItem(index: 4, price: 5_000),
-        SubmarineItem(index: 5, price: 5_000),
-        SubmarineItem(index: 6, price: 15_000),
+        SubmarineItem(index: 3, price: 750),
+        SubmarineItem(index: 4, price: 1_000),
+        SubmarineItem(index: 5, price: 2_000),
+        SubmarineItem(index: 6, price: 3_000),
     ]
 
     private let kTotalTrash  = "totalTrash"
