@@ -9,6 +9,8 @@ import GameplayKit
 
 class movementComponent: GKComponent {
     var speed: CGFloat
+    var bobbingOffset: CGFloat = CGFloat.random(in: 0...(.pi * 2))
+    var baseY: CGFloat?
     
     init(speed: CGFloat) {
         self.speed = speed
