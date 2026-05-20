@@ -280,15 +280,14 @@ extension gameScene {
         let equippedSub = UserDefaults.standard.integer(forKey: "equippedSubmarine")
         let subName: String
         if equippedSub <= 0 {
-            subName = "submarine1"
+            subName = "submarine1_game"
         } else {
-            subName = "submarine\(equippedSub)"
+            subName = "submarine\(equippedSub)_game"
         }
         
         let startPos = CGPoint(x: size.width * 0.2, y: size.height / 2)
         let submarine = submarineEntity(
             imageName: subName,
-            size: CGSize(width: 120, height: 82),
             startPosition: startPos
         )
         
@@ -422,11 +421,8 @@ extension gameScene {
         let magnetImageName = "magnet"
         let magnetSize = CGSize(width: 70, height: 69)
         
-        let safeMargin: CGFloat = 100 + (magnetSize.height / 2)
-        let randomY = CGFloat.random(
-            in: safeMargin...(size.height - safeMargin)
-        )
-        startPos = CGPoint(x: startX, y: randomY)
+        let startY = size.height / 2
+        startPos = CGPoint(x: startX, y: startY)
         
         newEntity = magnetEntity(
             imageName: magnetImageName,
