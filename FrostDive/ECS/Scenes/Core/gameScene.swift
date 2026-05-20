@@ -35,6 +35,10 @@ enum ObstacleType: CaseIterable {
 
 class gameScene: SKScene, SKPhysicsContactDelegate {
     
+    static var hasShownTutorialThisSession = false
+    var isTutorialActive = false
+    var tutorialNode: SKSpriteNode?
+    
     // MARK: - Properties
     var entities = [GKEntity]()
     var playerEntity: submarineEntity?
@@ -65,6 +69,7 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
         gameStateRef?.distance = 0
         soundComponent.shared.setupAudioSession()
         
+        
         setupPhysics()
         setupEdge()
         setupBackground()
@@ -73,12 +78,12 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
         
         soundComponent.shared.playBGM(scene: self)
         
-        startSpawning()
-        
-        let seconds = 15.0
-        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
-            self.startMagnetSpawning()
+        if !gameScene.hasShownTutorialThisSession {
+            showTutorial()
+        } else {
+            startGameplay()
         }
+        
     }
     
     private func setupHUD() {
@@ -109,6 +114,12 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        
+        if isTutorialActive {
+            dismissTutorial()
+            return // Jangan lakukan apa-apa lagi (kapal tidak akan melompat di tap pertama)
+        }
+        
         if gameStateRef?.isPaused == true || gameStateRef?.isGameOver == true {
             return
         }
@@ -135,6 +146,9 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     override func update(_ currentTime: TimeInterval) {
+        
+        if isTutorialActive { return }
+        
         if gameStateRef?.shouldReturnHome == true {
             navigateHome()
             return
@@ -154,8 +168,17 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
         if dt > 0.05 { dt = 1.0 / 60.0 }
         
         if gameStateRef?.isPaused == true || gameStateRef?.isGameOver == true {
+            
+            self.speed = 0
+            self.physicsWorld.speed = 0
+            
             if gameStateRef?.isGameOver == true { wasGameOver = true }
             return
+        } else {
+            
+            self.speed = 1
+            self.physicsWorld.speed = 1
+            
         }
         
         if !hasSavedSession {
@@ -163,7 +186,7 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
             hud?.distance = Int(sessionDistance)
         }
         
-        let currentSpeedMultiplier = 1.0 + (CGFloat(sessionTrash) / 10.0)
+        let currentSpeedMultiplier = 1.0 + (CGFloat(sessionDistance) / 2000.0)
         
         if !hasSavedSession {
             let baseDistanceRate: Double = 10.0 // Angka dasar pertambahan jarak
@@ -309,6 +332,53 @@ extension gameScene {
         }
         
         entities.append(submarine)
+    }
+    
+    // MARK: - Tutorial & Gameplay Flow
+    
+    private func showTutorial() {
+        isTutorialActive = true
+        
+        // Bekukan waktu game sepenuhnya
+        self.speed = 0
+        self.physicsWorld.speed = 0
+        
+        // Tampilkan gambar instruksi
+        let tutorial = SKSpriteNode(imageNamed: "attention") // Sesuaikan nama asetmu
+        tutorial.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        tutorial.zPosition = 300 // Pastikan berada paling depan menutupi HUD
+        tutorial.name = "tutorialNode"
+        
+        // Opsional: Sesuaikan skala jika gambarnya terlalu besar/kecil
+        // tutorial.setScale(0.8)
+        
+        addChild(tutorial)
+        tutorialNode = tutorial
+    }
+    
+    private func dismissTutorial() {
+        isTutorialActive = false
+        gameScene.hasShownTutorialThisSession = true // Tandai agar tidak muncul lagi
+        
+        // Buang gambar dari layar
+        tutorialNode?.removeFromParent()
+        tutorialNode = nil
+        
+        startGameplay()
+    }
+    
+    private func startGameplay() {
+        // Cairkan waktu game
+        self.speed = 1
+        self.physicsWorld.speed = 1
+        
+        // Mulai munculkan musuh dan magnet
+        startSpawning()
+        
+        let seconds = 15.0
+        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) { [weak self] in
+            self?.startMagnetSpawning()
+        }
     }
 }
 
