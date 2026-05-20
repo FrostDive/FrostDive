@@ -81,29 +81,15 @@ class homeScene: SKScene {
     }
     
     private func setupHUD() {
-        let topY = size.height - 22
-        let iconLabelGap: CGFloat = 6
-        let leftMargin: CGFloat = 60
+        let topY = size.height - 35
+        let leftMargin: CGFloat = 92
 
-        let shopIconSize = CGSize(width: 22, height: 22)
-
-        shopButton = SKSpriteNode(imageNamed: "shopIcon")
-        shopButton.size = shopIconSize
+        shopButton = SKSpriteNode(imageNamed: "shopButton")
+        shopButton.size = CGSize(width: 80, height: 32)
         shopButton.position = CGPoint(x: leftMargin, y: topY)
         shopButton.zPosition = 10
         shopButton.name = "shopButton"
         addChild(shopButton)
-
-        let shopLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
-        shopLabel.text = "Shop"
-        shopLabel.fontSize = 16
-        shopLabel.fontColor = .white
-        shopLabel.horizontalAlignmentMode = .left
-        shopLabel.verticalAlignmentMode = .center
-        shopLabel.position = CGPoint(x: leftMargin + shopIconSize.width / 2 + iconLabelGap, y: topY)
-        shopLabel.zPosition = 10
-        shopLabel.name = "shopButton"
-        addChild(shopLabel)
 
         hudView = HUDView(sceneSize: size, mode: .homeShop)
         addChild(hudView)
@@ -113,7 +99,7 @@ class homeScene: SKScene {
     private func setupTitle() {
         logoImage = SKSpriteNode(imageNamed: "logo")
         let naturalAspect = logoImage.size.height / max(logoImage.size.width, 1)
-        let logoWidth = size.width * 0.76
+        let logoWidth = size.width * 0.65
         logoImage.size = CGSize(width: logoWidth, height: logoWidth * naturalAspect)
         logoImage.position = CGPoint(x: size.width / 2, y: size.height * 0.72)
         logoImage.zPosition = 5
@@ -127,15 +113,25 @@ class homeScene: SKScene {
             subName = "submarine1"
         } else {
             subName = "submarine\(equippedSub)"
+            
+            if subName == "submarine5" {
+                submarine = SKSpriteNode(imageNamed: subName)
+                let subWidth: CGFloat = 130
+                let subAspect = submarine.size.height / max(submarine.size.width, 1)
+                submarine.size = CGSize(width: subWidth, height: subWidth * subAspect)
+                submarine.position = CGPoint(x: size.width / 2, y: size.height * 0.40)
+                submarine.zPosition = 5
+                addChild(submarine)
+            } else {
+                submarine = SKSpriteNode(imageNamed: subName)
+                let subWidth: CGFloat = 160
+                let subAspect = submarine.size.height / max(submarine.size.width, 1)
+                submarine.size = CGSize(width: subWidth, height: subWidth * subAspect)
+                submarine.position = CGPoint(x: size.width / 2, y: size.height * 0.40)
+                submarine.zPosition = 5
+                addChild(submarine)
+            }
         }
-        
-        submarine = SKSpriteNode(imageNamed: subName)
-        let subWidth: CGFloat = 160
-        let subAspect = submarine.size.height / max(submarine.size.width, 1)
-        submarine.size = CGSize(width: subWidth, height: subWidth * subAspect)
-        submarine.position = CGPoint(x: size.width / 2, y: size.height * 0.40)
-        submarine.zPosition = 5
-        addChild(submarine)
     }
     
     private func setupButtons() {
