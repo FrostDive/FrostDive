@@ -22,7 +22,7 @@ enum SceneSizeProvider {
             return screen.bounds.size
         }
 
-        return UIScreen.main.bounds.size
+        return CGSize(width: 393, height: 852)
     }
 }
 
