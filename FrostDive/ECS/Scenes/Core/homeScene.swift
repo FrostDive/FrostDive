@@ -113,15 +113,25 @@ class homeScene: SKScene {
             subName = "submarine1"
         } else {
             subName = "submarine\(equippedSub)"
+            
+            if subName == "submarine5" {
+                submarine = SKSpriteNode(imageNamed: subName)
+                let subWidth: CGFloat = 130
+                let subAspect = submarine.size.height / max(submarine.size.width, 1)
+                submarine.size = CGSize(width: subWidth, height: subWidth * subAspect)
+                submarine.position = CGPoint(x: size.width / 2, y: size.height * 0.40)
+                submarine.zPosition = 5
+                addChild(submarine)
+            } else {
+                submarine = SKSpriteNode(imageNamed: subName)
+                let subWidth: CGFloat = 160
+                let subAspect = submarine.size.height / max(submarine.size.width, 1)
+                submarine.size = CGSize(width: subWidth, height: subWidth * subAspect)
+                submarine.position = CGPoint(x: size.width / 2, y: size.height * 0.40)
+                submarine.zPosition = 5
+                addChild(submarine)
+            }
         }
-        
-        submarine = SKSpriteNode(imageNamed: subName)
-        let subWidth: CGFloat = 160
-        let subAspect = submarine.size.height / max(submarine.size.width, 1)
-        submarine.size = CGSize(width: subWidth, height: subWidth * subAspect)
-        submarine.position = CGPoint(x: size.width / 2, y: size.height * 0.40)
-        submarine.zPosition = 5
-        addChild(submarine)
     }
     
     private func setupButtons() {
