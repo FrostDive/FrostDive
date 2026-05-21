@@ -128,6 +128,8 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
             let location = touch.location(in: self)
             for node in nodes(at: location) {
                 if node.name == "pauseButton" {
+                    soundComponent.shared.playButtonSound()
+
                     gameStateRef?.isPaused = true
                     return
                 }

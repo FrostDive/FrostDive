@@ -188,12 +188,18 @@ class homeScene: SKScene {
     
     private func handleStartButton() {
         guard !isTransitioningScene else { return }
+        
+        soundComponent.shared.playButtonSound()
+
         isTransitioningScene = true
         transitionToGame()
     }
     
     private func handleShopButton() {
         guard !isTransitioningScene else { return }
+        
+        soundComponent.shared.playButtonSound()
+
         isTransitioningScene = true
 
         let scaleDown = SKAction.scale(to: 0.9, duration: 0.1)

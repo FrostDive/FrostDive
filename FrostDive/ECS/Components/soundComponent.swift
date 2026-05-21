@@ -71,6 +71,9 @@ class soundComponent: GKComponent {
             homeBgmPlayer = try AVAudioPlayer(contentsOf: url)
 
             homeBgmPlayer?.numberOfLoops = -1
+            
+            homeBgmPlayer?.volume = 0.4
+
             homeBgmPlayer?.prepareToPlay()
             homeBgmPlayer?.play()
 
@@ -87,6 +90,32 @@ class soundComponent: GKComponent {
     }
 
     // MARK: - Sound Effects
+    private var buttonPlayer: AVAudioPlayer?
+    func playButtonSound() {
+
+        guard let url = Bundle.main.url(
+            forResource: "buttonClick",
+            withExtension: "mp3"
+        ) else {
+            print("buttonClick.mp3 NOT FOUND")
+            return
+        }
+
+        do {
+
+            buttonPlayer = try AVAudioPlayer(contentsOf: url)
+
+            buttonPlayer?.volume = 2.5
+
+            buttonPlayer?.prepareToPlay()
+            buttonPlayer?.play()
+
+        } catch {
+
+            print("FAILED PLAY BUTTON SOUND")
+        }
+    }
+    
     func playCollectSound(scene: SKScene) {
         print("PLAY collect SOUND")
 
