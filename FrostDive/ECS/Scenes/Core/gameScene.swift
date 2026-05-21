@@ -172,6 +172,8 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
             self.speed = 0
             self.physicsWorld.speed = 0
             
+            soundComponent.shared.pauseMusic()
+
             if gameStateRef?.isGameOver == true { wasGameOver = true }
             return
         } else {
@@ -179,6 +181,7 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
             self.speed = 1
             self.physicsWorld.speed = 1
             
+            soundComponent.shared.resumeMusic()
         }
         
         if !hasSavedSession {

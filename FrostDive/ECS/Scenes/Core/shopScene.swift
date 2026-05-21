@@ -58,9 +58,13 @@ class shopScene: SKScene {
         DispatchQueue.main.async { [weak self] in
             self?.gameStateRef?.currentScreen = .shop
         }
+                
+        soundComponent.shared.setupAudioSession()
 
         loadPersistentData()
         buildScene()
+        
+        soundComponent.shared.playHomeBGM()
     }
 
     // MARK: - persistence

@@ -29,7 +29,10 @@ class homeScene: SKScene {
         gameStateRef?.shouldReturnHome = false
         gameStateRef?.isPaused = false
         gameStateRef?.isGameOver = false
-
+        
+        soundComponent.shared.setupAudioSession()
+        soundComponent.shared.playHomeBGM()
+        
         setupScene()
         setupBackground()
         setupWhales()
@@ -206,7 +209,7 @@ class homeScene: SKScene {
             isTransitioningScene = false
             return
         }
-
+        
         let scene = gameScene(size: SceneSizeProvider.current(for: skView))
         scene.scaleMode = .aspectFill
         scene.gameStateRef = gameStateRef
