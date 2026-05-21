@@ -24,11 +24,13 @@ extension gameScene {
         let fishImages = ["fishSmall", "fishBig"]
         let randomImage = fishImages.randomElement() ?? "fishSmall"
         
+        let fishSpeed: CGFloat = (randomImage == "fishBig") ? 6.0 : 9.0
+        
         let startX = size.width + 100
         let randomY = CGFloat.random(in: 100...(size.height - 100))
         let startPos = CGPoint(x: startX, y: randomY)
         
-        let fish = fishEntity(imageName: randomImage, startPosition: startPos, speed: 9.0)
+        let fish = fishEntity(imageName: randomImage, startPosition: startPos, speed: fishSpeed)
         
         if let s = fish.component(ofType: spriteComponent.self) {
             addChild(s.node)
