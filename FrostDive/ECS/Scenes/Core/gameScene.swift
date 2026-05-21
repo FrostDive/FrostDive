@@ -217,6 +217,11 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     private func navigateHome() {
+        self.speed = 1
+                self.physicsWorld.speed = 1
+        
+        soundComponent.shared.stopBGM()
+        
         gameStateRef?.isPaused = false
         gameStateRef?.isGameOver = false
         gameStateRef?.shouldReturnHome = false
@@ -232,6 +237,12 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     private func restartGame() {
+        
+        self.speed = 1
+                self.physicsWorld.speed = 1
+                
+                soundComponent.shared.stopBGM()
+        
         gameStateRef?.currentScreen = .game
         gameStateRef?.shouldReturnHome = false
         gameStateRef?.isPaused = false
@@ -601,6 +612,8 @@ extension gameScene {
 
             let turnOffAction = SKAction.run { [weak self] in
                 self?.gameStateRef?.isMagnetic = false
+                
+                self?.playerEntity?.setMagnetSubmarineTexture(isActive: false)
 
                 if let self = self {
                     soundComponent.shared.playCollectMagnetSound(scene: self)
@@ -608,6 +621,7 @@ extension gameScene {
 
                 print("Efek magnet telah habis!")
             }
+            
 
             let magnetSequence = SKAction.sequence([waitAction, turnOffAction])
 

@@ -60,7 +60,7 @@ class MovementSystem: GKComponentSystem<movementComponent> {
                 let distance = sqrt(dx * dx + dy * dy)
                 
                 // Jika jaraknya masih lebih dari 5 pixel, tarik perlahan
-                if distance < 300.0 {
+                if distance < 600.0 {
                     isBeingPulled = true
                     let magnetPullSpeed: CGFloat = 8.0 // Semakin besar, sedotannya makin kencang
                     
