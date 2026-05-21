@@ -29,7 +29,10 @@ class homeScene: SKScene {
         gameStateRef?.shouldReturnHome = false
         gameStateRef?.isPaused = false
         gameStateRef?.isGameOver = false
-
+        
+        soundComponent.shared.setupAudioSession()
+        soundComponent.shared.playHomeBGM()
+        
         setupScene()
         setupBackground()
         setupWhales()
@@ -185,12 +188,18 @@ class homeScene: SKScene {
     
     private func handleStartButton() {
         guard !isTransitioningScene else { return }
+        
+        soundComponent.shared.playButtonSound()
+
         isTransitioningScene = true
         transitionToGame()
     }
     
     private func handleShopButton() {
         guard !isTransitioningScene else { return }
+        
+        soundComponent.shared.playButtonSound()
+
         isTransitioningScene = true
 
         let scaleDown = SKAction.scale(to: 0.9, duration: 0.1)
@@ -206,7 +215,7 @@ class homeScene: SKScene {
             isTransitioningScene = false
             return
         }
-
+        
         let scene = gameScene(size: SceneSizeProvider.current(for: skView))
         scene.scaleMode = .aspectFill
         scene.gameStateRef = gameStateRef

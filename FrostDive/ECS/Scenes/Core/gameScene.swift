@@ -128,6 +128,8 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
             let location = touch.location(in: self)
             for node in nodes(at: location) {
                 if node.name == "pauseButton" {
+                    soundComponent.shared.playButtonSound()
+
                     gameStateRef?.isPaused = true
                     return
                 }
@@ -172,6 +174,8 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
             self.speed = 0
             self.physicsWorld.speed = 0
             
+            soundComponent.shared.pauseMusic()
+
             if gameStateRef?.isGameOver == true { wasGameOver = true }
             return
         } else {
@@ -179,6 +183,7 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
             self.speed = 1
             self.physicsWorld.speed = 1
             
+            soundComponent.shared.resumeMusic()
         }
         
         if !hasSavedSession {
