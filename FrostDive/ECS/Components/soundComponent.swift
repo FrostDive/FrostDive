@@ -13,9 +13,11 @@ import UIKit
 class soundComponent: GKComponent {
     static let shared = soundComponent()
 
-    // MARK: - Background Music
+    // MARK: - Background Music Game
     private var bgmNode: SKAudioNode?
     func playBGM(scene: SKScene) {
+        stopHomeBGM()
+
         if bgmNode != nil { return }
 
         let bgm = SKAudioNode(fileNamed: "bgm.mp3")
@@ -34,7 +36,86 @@ class soundComponent: GKComponent {
         bgmNode = nil
     }
 
+    // MARK: - Pause / Resume Music
+    func pauseMusic() {
+        bgmNode?.run(SKAction.pause())
+    }
+
+    func resumeMusic() {
+        bgmNode?.run(SKAction.play())
+    }
+
+    // MARK: - Background Music Home & Shop
+    private var homeBgmPlayer: AVAudioPlayer?
+    func playHomeBGM() {
+
+        stopBGM()
+
+        // kalau sudah play jangan ulang dari awal
+        if homeBgmPlayer?.isPlaying == true {
+            return
+        }
+
+        guard
+            let url = Bundle.main.url(
+                forResource: "homeBgm",
+                withExtension: "mp3"
+            )
+        else {
+            print("homeBgm.mp3 NOT FOUND")
+            return
+        }
+
+        do {
+
+            homeBgmPlayer = try AVAudioPlayer(contentsOf: url)
+
+            homeBgmPlayer?.numberOfLoops = -1
+            
+            homeBgmPlayer?.volume = 0.4
+
+            homeBgmPlayer?.prepareToPlay()
+            homeBgmPlayer?.play()
+
+        } catch {
+
+            print("FAILED PLAY HOME BGM")
+        }
+    }
+
+    func stopHomeBGM() {
+
+        homeBgmPlayer?.stop()
+        homeBgmPlayer = nil
+    }
+
     // MARK: - Sound Effects
+    private var buttonPlayer: AVAudioPlayer?
+    func playButtonSound() {
+
+        guard let url = Bundle.main.url(
+            forResource: "buttonClick",
+            withExtension: "mp3"
+        ) else {
+            print("buttonClick.mp3 NOT FOUND")
+            return
+        }
+
+        do {
+
+            buttonPlayer = try AVAudioPlayer(contentsOf: url)
+
+            buttonPlayer?.volume = 2.5
+
+            buttonPlayer?.prepareToPlay()
+            buttonPlayer?.play()
+
+        } catch {
+
+            print("FAILED PLAY BUTTON SOUND")
+        }
+    }
+    
     func playCollectSound(scene: SKScene) {
         print("PLAY collect SOUND")
 
@@ -45,7 +126,7 @@ class soundComponent: GKComponent {
 
         scene.run(action)
     }
-    
+
     func playCollectMagnetSound(scene: SKScene) {
         print("PLAY collect magnet SOUND")
 
