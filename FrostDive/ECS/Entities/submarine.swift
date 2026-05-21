@@ -8,14 +8,85 @@
 import SpriteKit
 import GameplayKit
 
+enum submarineType {
+    case normal(Int)
+    
+    var imageName: String {
+        switch self {
+        case .normal(let number):
+            return "submarine\(number)_game"
+        }
+    }
+    
+    var magnetImageName: String {
+        switch self {
+        case .normal(let number):
+            return "submarine\(number)_game_magnet"
+        }
+    }
+    
+    var size: CGSize {
+        switch self {
+        case .normal(1):
+            return CGSize(width: 124, height: 85)
+
+        case .normal(2):
+            return CGSize(width: 115, height: 90)
+
+        case .normal(3):
+            return CGSize(width: 126, height: 65)
+
+        case .normal(4):
+            return CGSize(width: 107, height: 87)
+
+        case .normal(5):
+            return CGSize(width: 84, height: 85)
+
+        case .normal(6):
+            return CGSize(width: 106, height: 84)
+
+        default:
+            return CGSize(width: 124, height: 85)
+        }
+    }
+    
+    var magnetSize: CGSize {
+        switch self {
+        case .normal(1):
+            return CGSize(width: 142, height: 95)
+
+        case .normal(2):
+            return CGSize(width: 121, height: 104)
+
+        case .normal(3):
+            return CGSize(width: 163, height: 80)
+
+        case .normal(4):
+            return CGSize(width: 138, height: 86)
+
+        case .normal(5):
+            return CGSize(width: 116, height: 89)
+
+        case .normal(6):
+            return CGSize(width: 140, height: 91)
+
+        default:
+            return CGSize(width: 142, height: 95)
+        }
+    }
+}
+
 class submarineEntity: GKEntity {
-    let baseName: String
-    init(imageName: String, startPosition: CGPoint) {
-        self.baseName = imageName
+    let submarine: submarineType
+    init(type: submarineType, startPosition: CGPoint) {
+        self.submarine = type
         super.init()
         
-        let texture: SKTexture = .init(imageNamed: imageName)
-        let size = texture.size()
+        let texture: SKTexture = .init(imageNamed: type.imageName)
+        
+        let size = type.size
+        
+        
         
         // 1. Data Posisi & Visual
         addComponent(positionComponent(position: startPosition))
@@ -35,14 +106,16 @@ class submarineEntity: GKEntity {
     }
     
     func setMagnetSubmarineTexture(isActive: Bool) {
-            let textureName = isActive ? "\(baseName)_magnet" : baseName
+            let textureName = isActive ? submarine.magnetImageName : submarine.imageName
             let newTexture = SKTexture(imageNamed: textureName)
-            let newSize = newTexture.size()
+        let newSize = isActive ? submarine.magnetSize : submarine.size
+        // Contoh jika ingin memperbesar ukuran magnet sebesar 1.2x dari ukuran aslinya
+
             
             if let spriteComp = self.component(ofType: spriteComponent.self) {
                 // 1. Update Tekstur Visual
                 spriteComp.updateTexture(newTexture)
-                
+                                
                 // 2. Update Ukuran Visual
                 spriteComp.node.size = newSize
                 
