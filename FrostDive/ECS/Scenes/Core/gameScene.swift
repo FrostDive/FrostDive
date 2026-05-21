@@ -416,8 +416,9 @@ extension gameScene {
         self.speed = 1
         self.physicsWorld.speed = 1
         
-        // Mulai munculkan musuh dan magnet
+        // Mulai munculkan musuh dan magnet dan ikan
         startSpawning()
+        startFishSpawning()
         
         let seconds = 15.0
         DispatchQueue.main.asyncAfter(deadline: .now() + seconds) { [weak self] in
@@ -675,7 +676,7 @@ extension gameScene {
         entities.removeAll { entity in
             
             // 1. Pastikan dia adalah trash atau obstacle
-            guard entity is trashEntity || entity is obstacleEntity else {
+            guard entity is trashEntity || entity is obstacleEntity || entity is fishEntity else {
                 return false
             }
             
