@@ -31,7 +31,34 @@ enum ObstacleType: CaseIterable {
         case .iceberg4: return CGSize(width: 240, height: 166)
         }
     }
+    
+    // ✅ Tambahkan fungsi ini untuk menghitung posisi
+    func getStartPosition(sceneSize: CGSize, startX: CGFloat) -> CGPoint {
+        let halfHeight = self.size.height / 2
+        
+        switch self {
+        case .bomb:
+            let safeMargin: CGFloat = 100 + halfHeight
+            let randomY = CGFloat.random(in: safeMargin...(sceneSize.height - safeMargin))
+            return CGPoint(x: startX, y: randomY)
+            
+        case .iceberg1:
+            return CGPoint(x: startX, y: sceneSize.height)
+        case .iceberg2:
+            // Iceberg atap (muncul di atas)
+            return CGPoint(x: startX, y: sceneSize.height - halfHeight + 30)
+            
+        case .iceberg3:
+            return CGPoint(x: startX, y: halfHeight - 30)
+            
+        case .iceberg4:
+            // Iceberg dasar laut (muncul di bawah)
+            return CGPoint(x: startX, y: halfHeight - 20)
+        }
+    }
 }
+
+
 
 class gameScene: SKScene, SKPhysicsContactDelegate {
     
@@ -218,7 +245,7 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
     
     private func navigateHome() {
         self.speed = 1
-                self.physicsWorld.speed = 1
+        self.physicsWorld.speed = 1
         
         soundComponent.shared.stopBGM()
         
@@ -239,9 +266,9 @@ class gameScene: SKScene, SKPhysicsContactDelegate {
     private func restartGame() {
         
         self.speed = 1
-                self.physicsWorld.speed = 1
-                
-                soundComponent.shared.stopBGM()
+        self.physicsWorld.speed = 1
+        
+        soundComponent.shared.stopBGM()
         
         gameStateRef?.currentScreen = .game
         gameStateRef?.shouldReturnHome = false
@@ -320,7 +347,7 @@ extension gameScene {
         } else {
             subName = "submarine\(equippedSub)_game"
         }
-
+        
         let startPos = CGPoint(x: size.width * 0.2, y: size.height / 2)
         let submarine = submarineEntity(
             imageName: subName,
@@ -334,7 +361,7 @@ extension gameScene {
         if let t = submarine.component(ofType: thrustComponent.self) {
             thrustSys.addComponent(t)
         }
-
+        
         let flashlight = flashlightComponent(scene: self)
         submarine.addComponent(flashlight)
         flashlight.startLightingCycle()
@@ -398,6 +425,8 @@ extension gameScene {
 // MARK: - Spawning Logic
 extension gameScene {
     
+    // MARK: PER SPAWNAN DISINI YGY AHAY ===========================================================
+    
     private func startSpawning() {
         let spawnAction = SKAction.run { [weak self] in
             self?.spawnRandomEntity()
@@ -408,20 +437,6 @@ extension gameScene {
         
         run(SKAction.repeatForever(sequence), withKey: "entity_spawn")
         
-    }
-    
-    private func startMagnetSpawning() {
-        // logic spawn magnet
-        
-        let spawnMagnet = SKAction.run { [weak self] in
-            self?.spawnMagnetEntity()
-        }
-        
-        let randomMagnetDelay = TimeInterval.random(in: 20.0...30.0)
-        let delayMagnet = SKAction.wait(forDuration: randomMagnetDelay)
-        let sequenceMagnet = SKAction.sequence([spawnMagnet, delayMagnet])
-        
-        run(SKAction.repeatForever(sequenceMagnet), withKey: "magnet_spawn")
     }
     
     private func spawnRandomEntity() {
@@ -435,12 +450,10 @@ extension gameScene {
         if isTrash {
             let randomTrashIndex = Int.random(in: 1...3)
             let trashImageName = "trash_\(randomTrashIndex)"
-            let trashSize = CGSize(width: 43, height: 69)
+            let trashSize = CGSize(width: 26, height: 42)
             
             let safeMargin: CGFloat = 100 + (trashSize.height / 2)
-            let randomY = CGFloat.random(
-                in: safeMargin...(size.height - safeMargin)
-            )
+            let randomY = CGFloat.random(in: safeMargin...(size.height - safeMargin))
             startPos = CGPoint(x: startX, y: randomY)
             
             newEntity = trashEntity(
@@ -452,24 +465,8 @@ extension gameScene {
             
         } else {
             let randomObstacle = ObstacleType.allCases.randomElement()!
-            let halfHeight = randomObstacle.size.height / 2
-            let overlapOffset: CGFloat = 20
             
-            switch randomObstacle {
-            case .bomb:
-                let safeMargin: CGFloat = 100 + halfHeight
-                let randomY = CGFloat.random(
-                    in: safeMargin...(size.height - safeMargin)
-                )
-                startPos = CGPoint(x: startX, y: randomY)
-            case .iceberg1, .iceberg2:
-                startPos = CGPoint(
-                    x: startX,
-                    y: size.height - halfHeight + overlapOffset
-                )
-            case .iceberg3, .iceberg4:
-                startPos = CGPoint(x: startX, y: halfHeight - overlapOffset)
-            }
+            startPos = randomObstacle.getStartPosition(sceneSize: self.size, startX: startX)
             
             newEntity = obstacleEntity(
                 imageName: randomObstacle.imageName,
@@ -494,15 +491,31 @@ extension gameScene {
         entities.append(newEntity)
     }
     
+    // MARK: AKHIR SPAWNING DIMARI CUY ===========================================================
+    
+    private func startMagnetSpawning() {
+        // logic spawn magnet
+        
+        let spawnMagnet = SKAction.run { [weak self] in
+            self?.spawnMagnetEntity()
+        }
+        
+        let randomMagnetDelay = TimeInterval.random(in: 20.0...30.0)
+        let delayMagnet = SKAction.wait(forDuration: randomMagnetDelay)
+        let sequenceMagnet = SKAction.sequence([spawnMagnet, delayMagnet])
+        
+        run(SKAction.repeatForever(sequenceMagnet), withKey: "magnet_spawn")
+    }
+    
     private func spawnMagnetEntity() {
         
-        let magspeed: CGFloat = 2.5
+        let magspeed: CGFloat = 1.5
         let startX = size.width + 100
         let newEntity: GKEntity
         var startPos: CGPoint = .zero
         
         let magnetImageName = "magnet"
-        let magnetSize = CGSize(width: 70, height: 69)
+        let magnetSize = CGSize(width: 43, height: 42)
         
         let startY = size.height / 2
         startPos = CGPoint(x: startX, y: startY)
@@ -592,39 +605,39 @@ extension gameScene {
         } else if collision == physicsCategory.submarine | physicsCategory.power
         {
             let powerNode =
-                bodyA == physicsCategory.power
-                ? contact.bodyA.node : contact.bodyB.node
-
+            bodyA == physicsCategory.power
+            ? contact.bodyA.node : contact.bodyB.node
+            
             soundComponent.shared.playCollectMagnetSound(scene: self)
-
+            
             print("Power-up diambil!")
             
             guard powerNode?.name == "magnet" else { return }
             powerNode?.name = "collected"
             powerNode?.removeFromParent()
-
+            
             self.gameStateRef?.isMagnetic = true
             
             self.playerEntity?.setMagnetSubmarineTexture(isActive: true)
             
             // 2. Buat aksi menunggu 10 detik
             let waitAction = SKAction.wait(forDuration: 10.0)
-
+            
             let turnOffAction = SKAction.run { [weak self] in
                 self?.gameStateRef?.isMagnetic = false
                 
                 self?.playerEntity?.setMagnetSubmarineTexture(isActive: false)
-
+                
                 if let self = self {
                     soundComponent.shared.playCollectMagnetSound(scene: self)
                 }
-
+                
                 print("Efek magnet telah habis!")
             }
             
-
+            
             let magnetSequence = SKAction.sequence([waitAction, turnOffAction])
-
+            
             
             // 5. Jalankan dengan Key.
             // Jika pemain ambil magnet lagi di detik ke-9, timer lama akan otomatis ditimpa timer baru!
@@ -651,16 +664,16 @@ extension gameScene {
                     .removeFromParent()
             }
             removeAction(forKey: "magnet_spawn")
-
+            
             playerEntity?.component(ofType: flashlightComponent.self)?
                 .containerNode.removeFromParent()
             playerEntity?.component(ofType: spriteComponent.self)?.node
                 .removeFromParent()
-
+            
             saveSessionResults()
             gameStateRef?.trash = sessionTrash
             gameStateRef?.distance = CGFloat(sessionDistance)
-
+            
             spawnExplosion(at: submarinePosition) { [weak self] in
                 self?.fadeToBlackThenGameOver()
             }
