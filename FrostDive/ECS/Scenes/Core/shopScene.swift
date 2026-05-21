@@ -360,6 +360,17 @@ class shopScene: SKScene {
         confirmBtn.name = "confirmButton"
         confirmBtn.zPosition = 1
         popup.addChild(confirmBtn)
+        
+        let closeButton = SKSpriteNode(imageNamed: "closeButton")
+        closeButton.size = CGSize(width: 34, height: 34)
+        closeButton.position = CGPoint(
+            x: size.width / 2 - popupW * 0.38,
+            y: size.height / 2 + popupH * 0.35
+        )
+        closeButton.name = "closeBuyPopup"
+        closeButton.zPosition = 2
+
+        popup.addChild(closeButton)
 
         presentPopup(popup)
     }
@@ -503,6 +514,12 @@ class shopScene: SKScene {
                 dismissPopup()
                 return
 
+            case "closeBuyPopup":
+                soundComponent.shared.playButtonSound()
+
+                dismissPopup()
+                return
+                
             default:
                 break
             }
