@@ -32,7 +32,6 @@ enum ObstacleType: CaseIterable {
         }
     }
     
-    // ✅ Tambahkan fungsi ini untuk menghitung posisi
     func getStartPosition(sceneSize: CGSize, startX: CGFloat) -> CGPoint {
         let halfHeight = self.size.height / 2
         
@@ -43,7 +42,7 @@ enum ObstacleType: CaseIterable {
             return CGPoint(x: startX, y: randomY)
             
         case .iceberg1:
-            return CGPoint(x: startX, y: sceneSize.height)
+            return CGPoint(x: startX, y: sceneSize.height - halfHeight + 50)
         case .iceberg2:
             // Iceberg atap (muncul di atas)
             return CGPoint(x: startX, y: sceneSize.height - halfHeight + 30)
@@ -425,81 +424,225 @@ extension gameScene {
 // MARK: - Spawning Logic
 extension gameScene {
     
-    // MARK: PER SPAWNAN DISINI YGY AHAY ===========================================================
-    
+    // MARK: - 1. Pemicu Spawning (Dinamis)
     private func startSpawning() {
-        let spawnAction = SKAction.run { [weak self] in
-            self?.spawnRandomEntity()
-        }
-        let randomDelay = TimeInterval.random(in: 2.0...3.5)
-        let delaySpawn = SKAction.wait(forDuration: randomDelay)
-        let sequence = SKAction.sequence([spawnAction, delaySpawn])
-        
-        run(SKAction.repeatForever(sequence), withKey: "entity_spawn")
-        
+        spawnRandomPatternAndScheduleNext()
     }
     
-    private func spawnRandomEntity() {
+    private func spawnRandomPatternAndScheduleNext() {
         let isTrash = Bool.random()
-        let speed: CGFloat = 3.0
         let startX = size.width + 100
-        
-        let newEntity: GKEntity
-        var startPos: CGPoint = .zero
+        var patternDelay: TimeInterval = 2.5 // Jeda default
         
         if isTrash {
-            let randomTrashIndex = Int.random(in: 1...3)
-            let trashImageName = "trash_\(randomTrashIndex)"
-            let trashSize = CGSize(width: 26, height: 42)
-            
-            let safeMargin: CGFloat = 100 + (trashSize.height / 2)
-            let randomY = CGFloat.random(in: safeMargin...(size.height - safeMargin))
-            startPos = CGPoint(x: startX, y: randomY)
-            
-            newEntity = trashEntity(
-                imageName: trashImageName,
-                size: trashSize,
-                startPosition: startPos,
-                speed: speed
-            )
-            
+            let pattern = Int.random(in: 1...3)
+            switch pattern {
+            case 1:
+                spawnTrashGrid(startX: startX)
+                patternDelay = 2.0 // Grid lumayan padat
+            case 2:
+                spawnTrashZigZag(startX: startX)
+                patternDelay = 3.5 // Zigzag butuh ruang panjang ke belakang
+            case 3:
+                spawnTrashLine(startX: startX)
+                patternDelay = 2.5
+            default: break
+            }
         } else {
-            let randomObstacle = ObstacleType.allCases.randomElement()!
-            
-            startPos = randomObstacle.getStartPosition(sceneSize: self.size, startX: startX)
-            
-            newEntity = obstacleEntity(
-                imageName: randomObstacle.imageName,
-                size: randomObstacle.size,
-                startPosition: startPos,
-                speed: speed
-            )
+            let pattern = Int.random(in: 4...8)
+            switch pattern {
+            case 4:
+                spawnBombWallTopGap(startX: startX)
+                patternDelay = 2.5
+            case 5:
+                spawnBombWallBottomGap(startX: startX)
+                patternDelay = 2.5
+            case 6:
+                spawnBombWallMiddleGap(startX: startX)
+                patternDelay = 2.5
+            case 7:
+                spawnIcebergAlternating1(startX: startX)
+                patternDelay = 7.0 // SANGAT PANJANG! Jeda harus lama agar tidak bertabrakan
+            case 8:
+                spawnIcebergAlternating2(startX: startX)
+                patternDelay = 7.0 // SANGAT PANJANG!
+            default: break
+            }
         }
         
-        if let s = newEntity.component(ofType: spriteComponent.self) {
+        // Tambahkan elemen acak kecil agar jedanya tidak terasa kaku
+        let finalDelay = patternDelay + TimeInterval.random(in: 0...0.8)
+        
+        let waitAction = SKAction.wait(forDuration: finalDelay)
+        let nextSpawn = SKAction.run { [weak self] in
+            self?.spawnRandomPatternAndScheduleNext()
+        }
+        
+        // Panggil dirinya sendiri (Rekursif) dengan jeda waktu yang dinamis
+        let sequence = SKAction.sequence([waitAction, nextSpawn])
+        run(sequence, withKey: "entity_spawn")
+    }
+    
+    // MARK: - 2. Pembantu (Helpers) Pembentuk Entity
+    private func createTrash(at position: CGPoint) {
+        let randomTrashIndex = Int.random(in: 1...3)
+        let trashImageName = "trash_\(randomTrashIndex)"
+        let trashSize = CGSize(width: 26, height: 42)
+        
+        let newEntity = trashEntity(imageName: trashImageName, size: trashSize, startPosition: position, speed: 3.0)
+        finalizeSpawn(entity: newEntity, startPos: position)
+    }
+    
+    private func createObstacle(type: ObstacleType, at position: CGPoint) {
+        let newEntity = obstacleEntity(imageName: type.imageName, size: type.size, startPosition: position, speed: 3.0)
+        finalizeSpawn(entity: newEntity, startPos: position)
+    }
+    
+    private func finalizeSpawn(entity: GKEntity, startPos: CGPoint) {
+        if let s = entity.component(ofType: spriteComponent.self) {
             s.node.position = startPos
             addChild(s.node)
         }
-        
-        if let p = newEntity.component(ofType: positionComponent.self) {
-            posSystem.addComponent(p)
-        }
-        if let m = newEntity.component(ofType: movementComponent.self) {
-            moveSystem.addComponent(m)
-        }
-        
-        entities.append(newEntity)
+        if let p = entity.component(ofType: positionComponent.self) { posSystem.addComponent(p) }
+        if let m = entity.component(ofType: movementComponent.self) { moveSystem.addComponent(m) }
+        entities.append(entity)
     }
     
-    // MARK: AKHIR SPAWNING DIMARI CUY ===========================================================
+    // MARK: - 3. Daftar Pola (Patterns)
     
-    private func startMagnetSpawning() {
-        // logic spawn magnet
+    // CASE 1: Grid Sampah 3 Baris x 5 Kolom
+    private func spawnTrashGrid(startX: CGFloat) {
+        let cols = 5
+        let rows = 3
+        let spacingX: CGFloat = 45
+        let spacingY: CGFloat = 55
+        let gridHeight = CGFloat(rows - 1) * spacingY
         
+        let safeMargin = 100 + (gridHeight / 2)
+        let baseY = CGFloat.random(in: safeMargin...(size.height - safeMargin))
+        
+        for col in 0..<cols {
+            for row in 0..<rows {
+                let x = startX + CGFloat(col) * spacingX
+                let y = baseY + (CGFloat(row) * spacingY) - (gridHeight / 2)
+                createTrash(at: CGPoint(x: x, y: y))
+            }
+        }
+    }
+    
+    // CASE 2: ZigZag Sampah (2 Gunung, 2 Lembah)
+    private func spawnTrashZigZag(startX: CGFloat) {
+        // Angka ini melambangkan posisi Y: Tengah(0), Atas(1), Tengah(0), Bawah(-1)
+        let yMultipliers: [CGFloat] = [0, 1, 0, -1, 0, 1, 0, -1, 0]
+        let spacingX: CGFloat = 50
+        let waveHeight: CGFloat = 80 // Tingkat kecuraman zigzag
+        
+        let safeMargin = 100 + waveHeight
+        let baseY = CGFloat.random(in: safeMargin...(size.height - safeMargin))
+        
+        for (index, mult) in yMultipliers.enumerated() {
+            let x = startX + CGFloat(index) * spacingX
+            let y = baseY + (mult * waveHeight)
+            createTrash(at: CGPoint(x: x, y: y))
+        }
+    }
+    
+    // CASE 3: Garis Lurus Sampah
+    private func spawnTrashLine(startX: CGFloat) {
+        let count = 7
+        let spacingX: CGFloat = 45
+        let baseY = CGFloat.random(in: 100...(size.height - 100))
+        
+        for i in 0..<count {
+            let x = startX + CGFloat(i) * spacingX
+            createTrash(at: CGPoint(x: x, y: baseY))
+        }
+    }
+    
+    // CASE 4: Tembok Bom (Celah di Atas)
+    private func spawnBombWallTopGap(startX: CGFloat) {
+        let padding: CGFloat = 15
+        let step = ObstacleType.bomb.size.height + padding
+        let gapHeight: CGFloat = 220 // Area kosong untuk kapal lewat
+        
+        let maxY = size.height - gapHeight
+        var currentY: CGFloat = 50 // Mulai susun dari bawah ke atas
+        
+        while currentY < maxY {
+            createObstacle(type: .bomb, at: CGPoint(x: startX, y: currentY))
+            currentY += step
+        }
+    }
+    
+    // CASE 5: Tembok Bom (Celah di Bawah)
+    private func spawnBombWallBottomGap(startX: CGFloat) {
+        let padding: CGFloat = 15
+        let step = ObstacleType.bomb.size.height + padding
+        let gapHeight: CGFloat = 220
+        
+        let minY = gapHeight
+        var currentY = size.height - 50 // Mulai susun dari atas ke bawah
+        
+        while currentY > minY {
+            createObstacle(type: .bomb, at: CGPoint(x: startX, y: currentY))
+            currentY -= step
+        }
+    }
+    
+    // CASE 6: Tembok Bom Split (Celah di Tengah Layar)
+    private func spawnBombWallMiddleGap(startX: CGFloat) {
+        let padding: CGFloat = 15
+        let step = ObstacleType.bomb.size.height + padding
+        let gapHeight: CGFloat = 250 // Celah tengah sedikit lebih besar karena sulit masuk
+        
+        let middleY = size.height / 2
+        let gapBottom = middleY - (gapHeight / 2)
+        let gapTop = middleY + (gapHeight / 2)
+        
+        // Susun pilar bawah
+        var currentY: CGFloat = 50
+        while currentY < gapBottom {
+            createObstacle(type: .bomb, at: CGPoint(x: startX, y: currentY))
+            currentY += step
+        }
+        
+        // Susun pilar atas
+        currentY = gapTop
+        while currentY < size.height - 20 {
+            createObstacle(type: .bomb, at: CGPoint(x: startX, y: currentY))
+            currentY += step
+        }
+    }
+    
+    // CASE 7: Iceberg Bergantian (Atas - Bawah - Atas - Bawah)
+    private func spawnIcebergAlternating1(startX: CGFloat) {
+        let spacingX: CGFloat = 200 // Jarak antar iceberg
+        let types: [ObstacleType] = [.iceberg1, .iceberg3, .iceberg1, .iceberg3]
+        
+        for (index, type) in types.enumerated() {
+            let x = startX + CGFloat(index) * spacingX
+            let y = type.getStartPosition(sceneSize: size, startX: x).y // Manfaatkan enum milikmu!
+            createObstacle(type: type, at: CGPoint(x: x, y: y))
+        }
+    }
+    
+    // CASE 8: Iceberg Bergantian (Bawah - Atas - Bawah - Atas)
+    private func spawnIcebergAlternating2(startX: CGFloat) {
+        let spacingX: CGFloat = 200
+        let types: [ObstacleType] = [.iceberg4, .iceberg2, .iceberg4, .iceberg2]
+        
+        for (index, type) in types.enumerated() {
+            let x = startX + CGFloat(index) * spacingX
+            let y = type.getStartPosition(sceneSize: size, startX: x).y
+            createObstacle(type: type, at: CGPoint(x: x, y: y))
+        }
+    }
+    
+    // MARK: - Magnet Spawning (Sama seperti sebelumnya)
+    private func startMagnetSpawning() {
         let spawnMagnet = SKAction.run { [weak self] in
             self?.spawnMagnetEntity()
         }
-        
         let randomMagnetDelay = TimeInterval.random(in: 20.0...30.0)
         let delayMagnet = SKAction.wait(forDuration: randomMagnetDelay)
         let sequenceMagnet = SKAction.sequence([spawnMagnet, delayMagnet])
@@ -508,40 +651,16 @@ extension gameScene {
     }
     
     private func spawnMagnetEntity() {
-        
-        let magspeed: CGFloat = 1.5
         let startX = size.width + 100
-        let newEntity: GKEntity
-        var startPos: CGPoint = .zero
-        
-        let magnetImageName = "magnet"
         let magnetSize = CGSize(width: 43, height: 42)
         
-        let startY = size.height / 2
-        startPos = CGPoint(x: startX, y: startY)
+        let startPos = CGPoint(x: startX, y: size.height / 2)
+        let newEntity = magnetEntity(imageName: "magnet", size: magnetSize, startPosition: startPos, speed: 1.5)
         
-        newEntity = magnetEntity(
-            imageName: magnetImageName,
-            size: magnetSize,
-            startPosition: startPos,
-            speed: magspeed
-        )
-        
-        if let s = newEntity.component(ofType: spriteComponent.self) {
-            s.node.position = startPos
-            addChild(s.node)
-            
-            if let p = newEntity.component(ofType: positionComponent.self) {
-                posSystem.addComponent(p)
-            }
-            if let m = newEntity.component(ofType: movementComponent.self) {
-                moveSystem.addComponent(m)
-            }
-            
-            entities.append(newEntity)
-        }
+        finalizeSpawn(entity: newEntity, startPos: startPos)
     }
 }
+
 
 // MARK: - Cleanup System
 extension gameScene {
