@@ -45,6 +45,8 @@ struct gameOver: View {
                 
                 HStack(spacing: 12) {
                     Button(action: {
+                        soundComponent.shared.playButtonSound()
+
                         gameState.isGameOver = false
                         gameState.shouldReturnHome = true
                     }) {
@@ -55,6 +57,8 @@ struct gameOver: View {
                     }
                     
                     Button(action: {
+                        soundComponent.shared.playButtonSound()
+
                         gameState.isGameOver = false
                         gameState.trash = 0
                         gameState.distance = 0

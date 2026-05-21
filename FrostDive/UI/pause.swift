@@ -20,6 +20,8 @@ struct pause: View {
                     .foregroundStyle(Color(hex: "#D8EDF5"))
                 
                 Button(action: {
+                    soundComponent.shared.playButtonSound()
+
                     gameState.isPaused = false
                 }) {
                     Image("continuePause")
@@ -29,6 +31,8 @@ struct pause: View {
                 }
                 
                 Button(action: {
+                    soundComponent.shared.playButtonSound()
+
                     gameState.isPaused = false
                     gameState.shouldReturnHome = true
                 }) {
