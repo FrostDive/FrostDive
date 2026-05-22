@@ -219,6 +219,7 @@ class homeScene: SKScene {
         let scene = gameScene(size: SceneSizeProvider.current(for: skView))
         scene.scaleMode = .aspectFill
         scene.gameStateRef = gameStateRef
+//        skView.showsPhysics = true
         skView.presentScene(scene)
     }
     

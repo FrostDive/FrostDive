@@ -31,11 +31,12 @@ class magnetEntity: GKEntity {
         // 3. Konfigurasi Fisika
         if let spriteNode = component(ofType: spriteComponent.self)?.node {
             spriteNode.name = "magnet"
-            spriteNode.physicsBody = SKPhysicsBody(texture: texture, size: size)
+            
+            let radius = min(size.width, size.height) / 2
+            spriteNode.physicsBody = SKPhysicsBody(circleOfRadius: radius)
             spriteNode.physicsBody?.isDynamic = false  // Agar tidak jatuh kena gravitasi
             spriteNode.physicsBody?.categoryBitMask = physicsCategory.power
-            spriteNode.physicsBody?.contactTestBitMask =
-                physicsCategory.submarine
+            spriteNode.physicsBody?.contactTestBitMask = physicsCategory.submarine
             spriteNode.physicsBody?.collisionBitMask = physicsCategory.none
 
             animationComponent.addMagnetGlow(
