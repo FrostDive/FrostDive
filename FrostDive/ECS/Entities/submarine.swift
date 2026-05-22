@@ -76,8 +76,76 @@ enum submarineType {
     }
 }
 
+extension submarineType {
+    func physicsBody(isMagnet: Bool) -> SKPhysicsBody {
+        let currentSize = isMagnet ? self.magnetSize : self.size
+        var bodies = [SKPhysicsBody]()
+        
+        switch self {
+        case .normal(1):
+            // 1. Settings for the two LARGE circles
+            let mainRadius = currentSize.height / 3.5
+            let horizontalOffset = currentSize.width / 4
+            
+            // ADJUST THIS: Negative moves them down (e.g., height / 10)
+            let mainBodyVerticalOffset = -currentSize.height / 8
+            
+            // Left & Right Circle
+            bodies.append(SKPhysicsBody(circleOfRadius: mainRadius, center: CGPoint(x: -horizontalOffset, y: mainBodyVerticalOffset)))
+            bodies.append(SKPhysicsBody(circleOfRadius: mainRadius, center: CGPoint(x: horizontalOffset, y: mainBodyVerticalOffset)))
+            
+            // 2. Settings for the SMALL TOP circle
+            let topRadius = currentSize.height / 6
+            
+            // Keep this Positive to keep it at the top
+            let topVerticalOffset = currentSize.height / 3.5
+            
+            bodies.append(SKPhysicsBody(circleOfRadius: topRadius, center: CGPoint(x: 5, y: topVerticalOffset)))
+            
+        case .normal(2):
+            // Example: One large body circle and one small tail circle
+            bodies.append(SKPhysicsBody(circleOfRadius: currentSize.height / 2.2, center: CGPoint(x: 10, y: 0)))
+            bodies.append(SKPhysicsBody(circleOfRadius: currentSize.height / 4, center: CGPoint(x: -40, y: -10)))
+            
+        case .normal(3):
+            // Two horizontally aligned circles
+            let radius = currentSize.height / 2
+            let offset = currentSize.width / 4
+            bodies.append(SKPhysicsBody(circleOfRadius: radius, center: CGPoint(x: -offset, y: 0)))
+            bodies.append(SKPhysicsBody(circleOfRadius: radius, center: CGPoint(x: offset, y: 0)))
+
+        case .normal(4):
+            // One big circle in the center
+            let radius = min(currentSize.width, currentSize.height) / 2
+            bodies.append(SKPhysicsBody(circleOfRadius: radius))
+
+        case .normal(5):
+            // One big circle in the center
+            let radius = min(currentSize.width, currentSize.height) / 2
+            bodies.append(SKPhysicsBody(circleOfRadius: radius))
+            
+        case .normal(6):
+            // One big circle in the center
+            let radius = min(currentSize.width, currentSize.height) / 2
+            bodies.append(SKPhysicsBody(circleOfRadius: radius))
+            
+            let topRadius = currentSize.height / 6
+            bodies.append(SKPhysicsBody(circleOfRadius: topRadius, center: CGPoint(x: 40, y: -25)))
+            
+        default:
+            // Fallback: Default single circle
+            bodies.append(SKPhysicsBody(circleOfRadius: min(currentSize.width, currentSize.height) / 2))
+        }
+        
+        // Combine all bodies into one
+        let compoundBody = SKPhysicsBody(bodies: bodies)
+        return compoundBody
+    }
+}
+
 class submarineEntity: GKEntity {
     let submarine: submarineType
+    
     init(type: submarineType, startPosition: CGPoint) {
         self.submarine = type
         super.init()
@@ -86,52 +154,44 @@ class submarineEntity: GKEntity {
         
         let size = type.size
         
-        
-        
         // 1. Data Posisi & Visual
         addComponent(positionComponent(position: startPosition))
         addComponent(spriteComponent(texture: texture, size: size))
         addComponent(thrustComponent(thrust: 15.0, maxVelocity: 300.0))
         
-        // 3. Konfigurasi Fisika
-        if let spriteNode = component(ofType: spriteComponent.self)?.node {
-            spriteNode.physicsBody = SKPhysicsBody(texture: texture, size: size)
-            spriteNode.physicsBody?.isDynamic = true
-            spriteNode.physicsBody?.affectedByGravity = true
-            spriteNode.physicsBody?.allowsRotation = false
-            spriteNode.physicsBody?.categoryBitMask = physicsCategory.submarine
-            spriteNode.physicsBody?.contactTestBitMask = physicsCategory.trash | physicsCategory.obstacle
-            spriteNode.physicsBody?.collisionBitMask = physicsCategory.edge
-        }
+        setupPhysics(isMagnet: false)
     }
     
     func setMagnetSubmarineTexture(isActive: Bool) {
+        if let spriteComp = self.component(ofType: spriteComponent.self) {
             let textureName = isActive ? submarine.magnetImageName : submarine.imageName
-            let newTexture = SKTexture(imageNamed: textureName)
-        let newSize = isActive ? submarine.magnetSize : submarine.size
-        // Contoh jika ingin memperbesar ukuran magnet sebesar 1.2x dari ukuran aslinya
-
+            let newSize = isActive ? submarine.magnetSize : submarine.size
             
-            if let spriteComp = self.component(ofType: spriteComponent.self) {
-                // 1. Update Tekstur Visual
-                spriteComp.updateTexture(newTexture)
-                                
-                // 2. Update Ukuran Visual
-                spriteComp.node.size = newSize
-                
-                // 3. Update Hitbox Fisika (PENTING!)
-                // Buat ulang physicsBody agar menyesuaikan dengan lekuk dan ukuran baru
-                spriteComp.node.physicsBody = SKPhysicsBody(texture: newTexture, size: newSize)
-                
-                // 4. Konfigurasi ulang sifat fisikanya (karena body yang lama sudah ditimpa)
-                spriteComp.node.physicsBody?.isDynamic = true
-                spriteComp.node.physicsBody?.affectedByGravity = true
-                spriteComp.node.physicsBody?.allowsRotation = false
-                spriteComp.node.physicsBody?.categoryBitMask = physicsCategory.submarine
-                spriteComp.node.physicsBody?.contactTestBitMask = physicsCategory.trash | physicsCategory.obstacle
-                spriteComp.node.physicsBody?.collisionBitMask = physicsCategory.edge
-            }
+            spriteComp.updateTexture(SKTexture(imageNamed: textureName))
+            spriteComp.node.size = newSize
+            
+            // Re-apply the custom circular physics
+            setupPhysics(isMagnet: isActive)
         }
+    }
+    
+    private func setupPhysics(isMagnet: Bool) {
+        guard let spriteNode = component(ofType: spriteComponent.self)?.node else { return }
+        
+        // Get the custom compound body from our enum logic
+        let body = submarine.physicsBody(isMagnet: isMagnet)
+        
+        // Apply properties
+        body.isDynamic = true
+        body.affectedByGravity = true
+        body.allowsRotation = false
+        body.categoryBitMask = physicsCategory.submarine
+        body.contactTestBitMask = physicsCategory.trash | physicsCategory.obstacle
+        body.collisionBitMask = physicsCategory.edge
+        
+        spriteNode.physicsBody = body
+    }
+
     
     required init?(coder: NSCoder) { fatalError() }
 }
