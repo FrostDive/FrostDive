@@ -127,15 +127,31 @@ class soundComponent: GKComponent {
         scene.run(action)
     }
 
+    private var magnetPlayer: AVAudioPlayer?
+
     func playCollectMagnetSound(scene: SKScene) {
-        print("PLAY collect magnet SOUND")
 
-        let action = SKAction.playSoundFileNamed(
-            "powerUp.wav",
-            waitForCompletion: false
-        )
+        guard let url = Bundle.main.url(
+            forResource: "powerUp",
+            withExtension: "wav"
+        ) else {
+            print("powerUp.wav NOT FOUND")
+            return
+        }
 
-        scene.run(action)
+        do {
+
+            magnetPlayer = try AVAudioPlayer(contentsOf: url)
+
+            magnetPlayer?.volume = 0.8
+
+            magnetPlayer?.prepareToPlay()
+            magnetPlayer?.play()
+
+        } catch {
+
+            print("FAILED PLAY MAGNET SOUND")
+        }
     }
 
     func playExplosionSound(scene: SKScene) {
