@@ -57,8 +57,6 @@ enum ObstacleType: CaseIterable {
     }
 }
 
-
-
 class gameScene: SKScene, SKPhysicsContactDelegate {
     
     static var hasShownTutorialThisSession = false
@@ -345,16 +343,16 @@ extension gameScene {
         let equippedSub = UserDefaults.standard.integer(
             forKey: "equippedSubmarine"
         )
-        let subName: String
+        let subIndex: Int
         if equippedSub <= 0 {
-            subName = "submarine1_game"
+            subIndex = 1
         } else {
-            subName = "submarine\(equippedSub)_game"
+            subIndex = min(max(equippedSub,1),6)
         }
         
         let startPos = CGPoint(x: size.width * 0.2, y: size.height / 2)
         let submarine = submarineEntity(
-            imageName: subName,
+            type: .normal(subIndex),
             startPosition: startPos
         )
         
@@ -666,7 +664,6 @@ extension gameScene {
         finalizeSpawn(entity: newEntity, startPos: startPos)
     }
 }
-
 
 // MARK: - Cleanup System
 extension gameScene {
